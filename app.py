@@ -215,9 +215,9 @@ def load_background_css() -> str:
             border-radius: 8px;
             display: grid;
             gap: 1.15rem;
-            grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+            grid-template-columns: minmax(190px, 260px) minmax(0, 1fr);
             overflow: hidden;
-            padding: 1rem;
+            padding: 0.85rem;
         }}
 
         .player-photo {{
@@ -227,13 +227,13 @@ def load_background_css() -> str:
             border-radius: 8px;
             display: flex;
             justify-content: center;
-            min-height: 360px;
+            min-height: 285px;
             overflow: hidden;
         }}
 
         .player-photo img {{
             display: block;
-            height: 360px;
+            height: 285px;
             max-width: 100%;
             object-fit: contain;
             object-position: bottom center;
@@ -250,7 +250,7 @@ def load_background_css() -> str:
 
         .bio-grid {{
             display: grid;
-            gap: 0.75rem;
+            gap: 0.65rem;
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }}
 
@@ -258,8 +258,8 @@ def load_background_css() -> str:
             background: rgba(255, 255, 255, 0.075);
             border: 1px solid rgba(255, 255, 255, 0.13);
             border-radius: 8px;
-            min-height: 106px;
-            padding: 1rem;
+            min-height: 88px;
+            padding: 0.78rem 0.85rem;
         }}
 
         .bio-label {{
@@ -321,11 +321,11 @@ def load_background_css() -> str:
             }}
 
             .player-photo {{
-                min-height: 300px;
+                min-height: 240px;
             }}
 
             .player-photo img {{
-                height: 300px;
+                height: 240px;
             }}
 
             .bio-grid {{
@@ -596,7 +596,7 @@ st.markdown(
         <div>
             <div class="eyebrow">Campeonato Brasileiro Sub-20 2026</div>
             <div class="main-title">{html.escape(selected_team)}</div>
-            <p class="subtitle">Perfil biografico do elenco e acompanhamento individual</p>
+            <p class="subtitle">Perfil biografico do jogador e acompanhamento individual</p>
         </div>
     </section>
     <section>
