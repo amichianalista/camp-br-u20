@@ -19,6 +19,14 @@ BACKGROUND_PATH = ROOT_DIR / "assets" / "background.png"
 TEAM_LOGO_BUCKET = "camp-br-u20-player-images"
 TEAM_LOGO_FOLDER = "teams"
 PLAYER_IMAGE_FOLDER = "players"
+SCORE_SCHEMA = "camp-br-u20"
+SCORE_TABLES = [
+    "fact.scores_players.atacantes",
+    "fact.scores_players.defensores",
+    "fact.scores_players.goleiros",
+    "fact.scores_players.laterais",
+    "fact.scores_players.meias",
+]
 IMAGE_MIME_TYPES = {
     "jpg": "image/jpeg",
     "jpeg": "image/jpeg",
@@ -216,7 +224,7 @@ def load_background_css() -> str:
             display: grid;
             align-items: start;
             gap: 0.8rem;
-            grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
+            grid-template-columns: minmax(170px, 220px) minmax(0, 1fr) minmax(190px, 250px);
             overflow: hidden;
             padding: 0.75rem;
         }}
@@ -255,7 +263,7 @@ def load_background_css() -> str:
             align-content: start;
             gap: 0.55rem;
             grid-auto-rows: minmax(72px, auto);
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }}
 
         .bio-card {{
@@ -279,6 +287,42 @@ def load_background_css() -> str:
             font-size: clamp(0.98rem, 1.3vw, 1.28rem);
             font-weight: 800;
             line-height: 1.08;
+        }}
+
+        .cluster-panel {{
+            background:
+                linear-gradient(160deg, rgba(34, 197, 94, 0.18), rgba(56, 189, 248, 0.10)),
+                rgba(255, 255, 255, 0.075);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 245px;
+            padding: 1rem;
+        }}
+
+        .cluster-label {{
+            color: rgba(203, 213, 225, 0.72);
+            font-size: 0.66rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+        }}
+
+        .cluster-value {{
+            color: #f8fafc;
+            font-size: clamp(1.6rem, 2.7vw, 2.35rem);
+            font-weight: 900;
+            line-height: 0.98;
+            margin-bottom: 0.35rem;
+        }}
+
+        .cluster-source {{
+            color: rgba(248, 250, 252, 0.62);
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 0;
         }}
 
         .panel {{
@@ -443,6 +487,18 @@ def format_date(value: object) -> str:
     return parsed.strftime("%d/%m/%Y")
 
 
+def format_score(value: object) -> str:
+    if pd.isna(value):
+        return "-"
+
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return clean_text(value)
+
+    return f"{number:.1f}".replace(".", ",")
+
+
 def calculate_age(value: object) -> str:
     if pd.isna(value):
         return "-"
@@ -536,6 +592,38 @@ def load_player_photo(player_id: object) -> tuple[bytes | None, str]:
     return None, "image/png"
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def load_player_cluster(player_id: object) -> tuple[str | None, str | None]:
+    path_id = storage_path_id(player_id)
+    if not path_id:
+        return None, None
+
+    try:
+        normalized_player_id = int(path_id)
+    except ValueError:
+        normalized_player_id = path_id
+
+    client = get_supabase_client()
+    for table in SCORE_TABLES:
+        try:
+            rows = (
+                client.schema(SCORE_SCHEMA)
+                .table(table)
+                .select("player_id,cluster")
+                .eq("player_id", normalized_player_id)
+                .limit(1)
+                .execute()
+                .data
+                or []
+            )
+            if rows:
+                return rows[0].get("cluster"), table.rsplit(".", 1)[-1]
+        except Exception:  # noqa: BLE001
+            continue
+
+    return None, None
+
+
 def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str]:
     numeric_columns = df.select_dtypes(include=["number"]).columns.tolist()
     return [
@@ -592,6 +680,7 @@ team_id = player_row["time_id"] if "time_id" in player_row.index else None
 player_id = player_row["jogador_id"] if "jogador_id" in player_row.index else None
 team_logo = load_team_logo(team_id)
 player_photo, player_photo_mime = load_player_photo(player_id)
+player_cluster, cluster_position_group = load_player_cluster(player_id)
 team_logo_uri = image_data_uri(team_logo)
 player_photo_uri = image_data_uri(player_photo, player_photo_mime)
 team_logo_html = (
@@ -614,6 +703,8 @@ player_age = calculate_age(player_row["data_nascimento"]) if "data_nascimento" i
 player_birth_date = format_date(player_row["data_nascimento"]) if "data_nascimento" in player_row.index else "-"
 player_foot = row_value(player_row, "pe_preferido")
 player_contract = format_date(player_row["contrato_ate"]) if "contrato_ate" in player_row.index else "-"
+cluster_value = clean_text(player_cluster, "Sem cluster")
+cluster_source = clean_text(cluster_position_group, "Grupo nao identificado")
 
 st.markdown(
     f"""
@@ -657,6 +748,11 @@ st.markdown(
                 <div class="bio-label">Nascimento</div>
                 <div class="bio-value">{html.escape(player_birth_date)}</div>
             </div>
+        </div>
+        <div class="cluster-panel">
+            <div class="cluster-label">Cluster</div>
+            <div class="cluster-value">{html.escape(cluster_value)}</div>
+            <div class="cluster-source">Grupo: {html.escape(cluster_source)}</div>
         </div>
     </section>
     """,
