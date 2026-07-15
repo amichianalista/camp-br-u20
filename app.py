@@ -947,56 +947,50 @@ def render_performance_cards(cards: list[dict]) -> str:
         percentile = card["percentile"]
         metrics = card["metrics"]
         metric_rows = "".join(
-            f"""
-            <div class="metric-row">
-                <div class="metric-name">{html.escape(metric["name"])}</div>
-                <div class="metric-value">{html.escape(metric["value"])}</div>
-            </div>
-            """
+            '<div class="metric-row">'
+            f'<div class="metric-name">{html.escape(metric["name"])}</div>'
+            f'<div class="metric-value">{html.escape(metric["value"])}</div>'
+            "</div>"
             for metric in metrics
         )
         if not metric_rows:
-            metric_rows = """
-            <div class="metric-row">
-                <div class="metric-name">Metricas brutas</div>
-                <div class="metric-value">-</div>
-            </div>
-            """
+            metric_rows = (
+                '<div class="metric-row">'
+                '<div class="metric-name">Metricas brutas</div>'
+                '<div class="metric-value">-</div>'
+                "</div>"
+            )
 
         card_html.append(
-            f"""
-            <article class="performance-card">
-                <div class="performance-top">
-                    <div class="percent-gauge" style="--pct: {percentile:.2f}">
-                        <div class="percent-number">{percentile:.0f}</div>
-                    </div>
-                    <div>
-                        <div class="performance-label">Percentil</div>
-                        <div class="performance-name">{html.escape(card["name"])}</div>
-                        <div class="percent-bar" style="--pct: {percentile:.2f}">
-                            <div class="percent-fill"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="metric-list">{metric_rows}</div>
-            </article>
-            """
+            '<article class="performance-card">'
+            '<div class="performance-top">'
+            f'<div class="percent-gauge" style="--pct: {percentile:.2f}">'
+            f'<div class="percent-number">{percentile:.0f}</div>'
+            "</div>"
+            "<div>"
+            '<div class="performance-label">Percentil</div>'
+            f'<div class="performance-name">{html.escape(card["name"])}</div>'
+            f'<div class="percent-bar" style="--pct: {percentile:.2f}">'
+            '<div class="percent-fill"></div>'
+            "</div>"
+            "</div>"
+            "</div>"
+            f'<div class="metric-list">{metric_rows}</div>'
+            "</article>"
         )
 
-    return f"""
-    <section class="performance-section">
-        <div class="section-header">
-            <div>
-                <div class="player-kicker">Performance por categoria</div>
-                <h2 class="section-title">Percentis e metricas brutas</h2>
-            </div>
-            <p class="section-note">Score em percentil no topo; metricas da categoria abaixo</p>
-        </div>
-        <div class="performance-grid">
-            {''.join(card_html)}
-        </div>
-    </section>
-    """
+    return (
+        '<section class="performance-section">'
+        '<div class="section-header">'
+        "<div>"
+        '<div class="player-kicker">Performance por categoria</div>'
+        '<h2 class="section-title">Percentis e metricas brutas</h2>'
+        "</div>"
+        '<p class="section-note">Score em percentil no topo; metricas da categoria abaixo</p>'
+        "</div>"
+        f'<div class="performance-grid">{"".join(card_html)}</div>'
+        "</section>"
+    )
 
 
 st.markdown(load_background_css(), unsafe_allow_html=True)
