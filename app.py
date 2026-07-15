@@ -891,7 +891,7 @@ def render_performance_cards(cards: list[dict]) -> str:
         if not metric_rows:
             metric_rows = (
                 '<div class="metric-row">'
-                '<div class="metric-name">Metricas brutas</div>'
+                '<div class="metric-name">Métricas disponíveis</div>'
                 '<div class="metric-value">-</div>'
                 "</div>"
             )
@@ -918,10 +918,10 @@ def render_performance_cards(cards: list[dict]) -> str:
         '<section class="performance-section">'
         '<div class="section-header">'
         "<div>"
-        '<div class="player-kicker">Performance por categoria</div>'
-        '<h2 class="section-title">Percentis e metricas brutas</h2>'
+        '<div class="player-kicker">Leitura de performance</div>'
+        '<h2 class="section-title">Desempenho por categoria</h2>'
         "</div>"
-        '<p class="section-note">Score em percentil no topo; metricas da categoria abaixo</p>'
+        '<p class="section-note">Percentil médio frente ao grupo da posição; métricas principais abaixo</p>'
         "</div>"
         f'<div class="performance-grid">{"".join(card_html)}</div>'
         "</section>"
@@ -986,7 +986,7 @@ team_logo_html = (
 player_photo_html = (
     f'<img src="{player_photo_uri}" alt="Foto {html.escape(selected_player)}">'
     if player_photo_uri
-    else '<div class="player-photo-placeholder">Foto indisponivel</div>'
+    else '<div class="player-photo-placeholder">Foto indisponível</div>'
 )
 player_position = first_valid_text(
     player_row["posicao_principal_detalhada"] if "posicao_principal_detalhada" in player_row.index else None,
@@ -1008,7 +1008,7 @@ st.markdown(
         <div>
             <div class="eyebrow">Campeonato Brasileiro Sub-20 2026</div>
             <div class="main-title">{html.escape(selected_team)}</div>
-            <p class="subtitle">Perfil biografico do jogador e acompanhamento individual</p>
+            <p class="subtitle">Bio, contexto e leitura individual de desempenho</p>
         </div>
     </section>
     <section>
@@ -1028,15 +1028,15 @@ st.markdown(
                 <div class="bio-value">{html.escape(player_age)}</div>
             </div>
             <div class="bio-card">
-                <div class="bio-label">Pe preferido</div>
+                <div class="bio-label">Pé preferido</div>
                 <div class="bio-value">{html.escape(player_foot)}</div>
             </div>
             <div class="bio-card">
-                <div class="bio-label">Pais</div>
+                <div class="bio-label">País</div>
                 <div class="bio-value">{html.escape(player_country)}</div>
             </div>
             <div class="bio-card">
-                <div class="bio-label">Contrato ate</div>
+                <div class="bio-label">Contrato até</div>
                 <div class="bio-value">{html.escape(player_contract)}</div>
             </div>
             <div class="bio-card">
@@ -1045,9 +1045,9 @@ st.markdown(
             </div>
         </div>
         <div class="cluster-panel">
-            <div class="cluster-label">Cluster</div>
+            <div class="cluster-label">Perfil de jogo</div>
             <div class="cluster-value">{html.escape(cluster_value)}</div>
-            <div class="cluster-source">Grupo: {html.escape(cluster_source)}</div>
+            <div class="cluster-source">Posição-base: {html.escape(cluster_source)}</div>
         </div>
     </section>
     """,
