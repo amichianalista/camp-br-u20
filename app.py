@@ -112,22 +112,22 @@ def load_background_css() -> str:
         }}
 
         .block-container {{
-            padding-top: 1.4rem;
-            padding-bottom: 2rem;
-            max-width: 1320px;
+            padding-top: 0.7rem;
+            padding-bottom: 1.25rem;
+            max-width: 1240px;
         }}
 
         .team-hero {{
             background: linear-gradient(135deg, rgba(8, 16, 22, 0.90), rgba(8, 16, 22, 0.58));
             border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 8px;
-            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 18px 54px rgba(0, 0, 0, 0.34);
             display: grid;
-            grid-template-columns: 128px minmax(0, 1fr);
-            gap: 1.25rem;
-            margin-bottom: 1.15rem;
+            grid-template-columns: 96px minmax(0, 1fr);
+            gap: 0.95rem;
+            margin-bottom: 0.75rem;
             overflow: hidden;
-            padding: 1.15rem 1.25rem;
+            padding: 0.8rem 1rem;
             position: relative;
         }}
 
@@ -147,15 +147,15 @@ def load_background_css() -> str:
             border: 1px solid rgba(255, 255, 255, 0.45);
             border-radius: 8px;
             display: flex;
-            height: 118px;
+            height: 88px;
             justify-content: center;
-            padding: 0.85rem;
-            width: 118px;
+            padding: 0.65rem;
+            width: 88px;
         }}
 
         .team-crest img {{
-            max-height: 92px;
-            max-width: 92px;
+            max-height: 68px;
+            max-width: 68px;
             object-fit: contain;
         }}
 
@@ -164,22 +164,22 @@ def load_background_css() -> str:
             font-size: 0.78rem;
             font-weight: 700;
             letter-spacing: 0;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.22rem;
             text-transform: uppercase;
         }}
 
         .main-title {{
             color: #f8fafc;
-            font-size: clamp(2.1rem, 5vw, 5.2rem);
+            font-size: clamp(1.8rem, 4.2vw, 3.8rem);
             font-weight: 900;
-            line-height: 0.92;
-            margin: 0 0 0.55rem 0;
+            line-height: 0.95;
+            margin: 0 0 0.32rem 0;
             text-shadow: 0 14px 44px rgba(0, 0, 0, 0.42);
         }}
 
         .subtitle {{
             color: rgba(248, 250, 252, 0.84);
-            font-size: 1.06rem;
+            font-size: 0.95rem;
             font-weight: 600;
             margin: 0;
         }}
@@ -188,24 +188,24 @@ def load_background_css() -> str:
             color: rgba(34, 197, 94, 0.95);
             font-size: 0.78rem;
             font-weight: 800;
-            margin: 1.2rem 0 0.25rem 0;
+            margin: 0.55rem 0 0.18rem 0;
             text-transform: uppercase;
         }}
 
         .player-name {{
             color: #f8fafc;
-            font-size: clamp(2.1rem, 4.6vw, 4.7rem);
+            font-size: clamp(1.8rem, 4vw, 3.45rem);
             font-weight: 900;
-            line-height: 0.95;
+            line-height: 0.98;
             margin: 0;
             text-shadow: 0 12px 38px rgba(0, 0, 0, 0.48);
         }}
 
         .player-position {{
             color: rgba(248, 250, 252, 0.78);
-            font-size: clamp(1rem, 1.8vw, 1.35rem);
+            font-size: clamp(0.95rem, 1.45vw, 1.15rem);
             font-weight: 700;
-            margin: 0.35rem 0 0.9rem 0;
+            margin: 0.22rem 0 0.6rem 0;
         }}
 
         .player-board {{
@@ -214,10 +214,11 @@ def load_background_css() -> str:
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             display: grid;
-            gap: 1.15rem;
-            grid-template-columns: minmax(190px, 260px) minmax(0, 1fr);
+            align-items: start;
+            gap: 0.8rem;
+            grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
             overflow: hidden;
-            padding: 0.85rem;
+            padding: 0.75rem;
         }}
 
         .player-photo {{
@@ -227,16 +228,17 @@ def load_background_css() -> str:
             border-radius: 8px;
             display: flex;
             justify-content: center;
-            min-height: 285px;
+            min-height: 245px;
             overflow: hidden;
         }}
 
         .player-photo img {{
             display: block;
-            height: 285px;
+            height: 245px;
             max-width: 100%;
-            object-fit: contain;
-            object-position: bottom center;
+            object-fit: cover;
+            object-position: center top;
+            width: 100%;
         }}
 
         .player-photo-placeholder {{
@@ -250,7 +252,9 @@ def load_background_css() -> str:
 
         .bio-grid {{
             display: grid;
-            gap: 0.65rem;
+            align-content: start;
+            gap: 0.55rem;
+            grid-auto-rows: minmax(72px, auto);
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }}
 
@@ -258,21 +262,21 @@ def load_background_css() -> str:
             background: rgba(255, 255, 255, 0.075);
             border: 1px solid rgba(255, 255, 255, 0.13);
             border-radius: 8px;
-            min-height: 88px;
-            padding: 0.78rem 0.85rem;
+            min-height: 72px;
+            padding: 0.62rem 0.72rem;
         }}
 
         .bio-label {{
             color: rgba(203, 213, 225, 0.72);
-            font-size: 0.72rem;
+            font-size: 0.66rem;
             font-weight: 700;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.28rem;
             text-transform: uppercase;
         }}
 
         .bio-value {{
             color: #f8fafc;
-            font-size: clamp(1.05rem, 1.55vw, 1.55rem);
+            font-size: clamp(0.98rem, 1.3vw, 1.28rem);
             font-weight: 800;
             line-height: 1.08;
         }}
@@ -321,11 +325,11 @@ def load_background_css() -> str:
             }}
 
             .player-photo {{
-                min-height: 240px;
+                min-height: 220px;
             }}
 
             .player-photo img {{
-                height: 240px;
+                height: 220px;
             }}
 
             .bio-grid {{
@@ -418,6 +422,25 @@ def clean_text(value: object, fallback: str = "-") -> str:
 
 def row_value(row: pd.Series, column: str, fallback: str = "-") -> str:
     return clean_text(row[column], fallback) if column in row.index else fallback
+
+
+def first_valid_text(*values: object, fallback: str = "-") -> str:
+    for value in values:
+        text = clean_text(value, fallback="")
+        if text:
+            return text
+    return fallback
+
+
+def format_date(value: object) -> str:
+    if pd.isna(value):
+        return "-"
+
+    parsed = pd.to_datetime(value, errors="coerce")
+    if pd.isna(parsed):
+        return clean_text(value)
+
+    return parsed.strftime("%d/%m/%Y")
 
 
 def calculate_age(value: object) -> str:
@@ -581,13 +604,16 @@ player_photo_html = (
     if player_photo_uri
     else '<div class="player-photo-placeholder">Foto indisponivel</div>'
 )
-player_position = row_value(player_row, "posicao_principal_detalhada") or row_value(player_row, "posicao_jogador")
+player_position = first_valid_text(
+    player_row["posicao_principal_detalhada"] if "posicao_principal_detalhada" in player_row.index else None,
+    player_row["posicao_jogador"] if "posicao_jogador" in player_row.index else None,
+)
 player_country = row_value(player_row, "pais")
 player_height = format_height(player_row["altura_cm"]) if "altura_cm" in player_row.index else "-"
 player_age = calculate_age(player_row["data_nascimento"]) if "data_nascimento" in player_row.index else "-"
-player_birth_date = row_value(player_row, "data_nascimento")
+player_birth_date = format_date(player_row["data_nascimento"]) if "data_nascimento" in player_row.index else "-"
 player_foot = row_value(player_row, "pe_preferido")
-player_contract = row_value(player_row, "contrato_ate")
+player_contract = format_date(player_row["contrato_ate"]) if "contrato_ate" in player_row.index else "-"
 
 st.markdown(
     f"""
@@ -636,5 +662,3 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
-st.caption(f"Tabela Supabase: {table_name}")
