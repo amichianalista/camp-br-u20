@@ -27,6 +27,25 @@ SCORE_TABLES = [
     "fact.scores_players.laterais",
     "fact.scores_players.meias",
 ]
+PERCENTILE_CATEGORY_MAP = {
+    "finalizacao": ["qualidade_finalizacao"],
+    "presenca_area": ["qualidade_posicionamento"],
+    "criacao_apoio": ["assistencias"],
+    "apoio_construcao": ["precisao_passe", "precisao_cruzamento", "saida_de_jogo"],
+    "quebrar_linhas": ["quebrar_linhas"],
+    "disciplina": ["disciplina"],
+    "qualidade_defensiva": ["qualidade_defensiva", "qualidade_defesa"],
+    "qualidade_aerea": ["qualidade_aerea", "saida_aerea"],
+    "saida_de_bola": ["saida_de_jogo", "precisao_passe"],
+    "qualidade_defesa": ["qualidade_defesa"],
+    "saida_de_jogo": ["saida_de_jogo", "precisao_passe"],
+    "saida_aerea": ["saida_aerea"],
+    "criacao_ofensiva": ["assistencias", "precisao_cruzamento"],
+    "construcao_jogo": ["precisao_passe", "saida_de_jogo"],
+    "criacao": ["assistencias"],
+    "chegada_area": ["qualidade_posicionamento", "qualidade_finalizacao"],
+    "pressao_defensiva": ["qualidade_defensiva", "participacao_jogo"],
+}
 IMAGE_MIME_TYPES = {
     "jpg": "image/jpeg",
     "jpeg": "image/jpeg",
@@ -325,6 +344,147 @@ def load_background_css() -> str:
             margin-bottom: 0;
         }}
 
+        .performance-section {{
+            margin-top: 0.9rem;
+        }}
+
+        .section-header {{
+            align-items: end;
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            margin: 0 0 0.55rem 0;
+        }}
+
+        .section-title {{
+            color: #f8fafc;
+            font-size: clamp(1.25rem, 2vw, 1.8rem);
+            font-weight: 900;
+            line-height: 1;
+            margin: 0;
+        }}
+
+        .section-note {{
+            color: rgba(226, 232, 240, 0.64);
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin: 0;
+        }}
+
+        .performance-grid {{
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }}
+
+        .performance-card {{
+            background:
+                linear-gradient(160deg, rgba(15, 23, 42, 0.86), rgba(7, 13, 18, 0.72));
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 8px;
+            overflow: hidden;
+            padding: 0.85rem;
+        }}
+
+        .performance-top {{
+            align-items: center;
+            display: grid;
+            gap: 0.85rem;
+            grid-template-columns: 92px minmax(0, 1fr);
+            margin-bottom: 0.65rem;
+        }}
+
+        .percent-gauge {{
+            align-items: center;
+            background:
+                conic-gradient(#22c55e calc(var(--pct) * 1%), rgba(255, 255, 255, 0.10) 0);
+            border-radius: 50%;
+            display: flex;
+            height: 86px;
+            justify-content: center;
+            position: relative;
+            width: 86px;
+        }}
+
+        .percent-gauge::after {{
+            background: rgba(7, 13, 18, 0.96);
+            border-radius: 50%;
+            content: "";
+            height: 66px;
+            position: absolute;
+            width: 66px;
+        }}
+
+        .percent-number {{
+            color: #f8fafc;
+            font-size: 1.3rem;
+            font-weight: 900;
+            position: relative;
+            z-index: 1;
+        }}
+
+        .performance-label {{
+            color: rgba(203, 213, 225, 0.72);
+            font-size: 0.66rem;
+            font-weight: 800;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+        }}
+
+        .performance-name {{
+            color: #f8fafc;
+            font-size: 1.06rem;
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 0.45rem;
+        }}
+
+        .percent-bar {{
+            background: rgba(255, 255, 255, 0.10);
+            border-radius: 999px;
+            height: 7px;
+            overflow: hidden;
+        }}
+
+        .percent-fill {{
+            background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
+            border-radius: 999px;
+            height: 100%;
+            width: calc(var(--pct) * 1%);
+        }}
+
+        .metric-list {{
+            display: grid;
+            gap: 0.38rem;
+        }}
+
+        .metric-row {{
+            align-items: center;
+            background: rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0.43rem 0.52rem;
+        }}
+
+        .metric-name {{
+            color: rgba(226, 232, 240, 0.78);
+            font-size: 0.76rem;
+            font-weight: 700;
+            overflow: hidden;
+            padding-right: 0.6rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }}
+
+        .metric-value {{
+            color: #f8fafc;
+            font-size: 0.86rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }}
+
         .panel {{
             background: rgba(7, 13, 18, 0.74);
             border: 1px solid rgba(255, 255, 255, 0.13);
@@ -378,6 +538,10 @@ def load_background_css() -> str:
 
             .bio-grid {{
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }}
+
+            .performance-grid {{
+                grid-template-columns: 1fr;
             }}
         }}
     </style>
@@ -497,6 +661,26 @@ def format_score(value: object) -> str:
         return clean_text(value)
 
     return f"{number:.1f}".replace(".", ",")
+
+
+def format_metric_value(value: object, is_percentual: object = False) -> str:
+    if pd.isna(value):
+        return "-"
+
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return clean_text(value)
+
+    suffix = "%" if str(is_percentual).lower() == "true" else ""
+    if number.is_integer():
+        return f"{int(number)}{suffix}"
+
+    return f"{number:.1f}".replace(".", ",") + suffix
+
+
+def humanize_key(value: str) -> str:
+    return clean_text(value)
 
 
 def calculate_age(value: object) -> str:
@@ -624,6 +808,127 @@ def load_player_cluster(player_id: object) -> tuple[str | None, str | None]:
     return None, None
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def load_player_performance(player_id: object) -> list[dict]:
+    path_id = storage_path_id(player_id)
+    if not path_id:
+        return []
+
+    try:
+        normalized_player_id = int(path_id)
+    except ValueError:
+        normalized_player_id = path_id
+
+    client = get_supabase_client()
+    score_row = None
+    score_table = None
+
+    for table in SCORE_TABLES:
+        try:
+            rows = (
+                client.schema(SCORE_SCHEMA)
+                .table(table)
+                .select("*")
+                .eq("player_id", normalized_player_id)
+                .limit(1)
+                .execute()
+                .data
+                or []
+            )
+            if rows:
+                score_row = rows[0]
+                score_table = table
+                break
+        except Exception:  # noqa: BLE001
+            continue
+
+    if not score_row or not score_table:
+        return []
+
+    metrics_table = score_table.replace("fact.scores_players", "fact.metrics_players")
+    metric_rows = (
+        client.schema(SCORE_SCHEMA)
+        .table(metrics_table)
+        .select("*")
+        .eq("player_id", normalized_player_id)
+        .execute()
+        .data
+        or []
+    )
+    metric_defs = (
+        client.schema(SCORE_SCHEMA)
+        .table("dim.metrics")
+        .select("metrica_id,nome_metrica,categoria_id,chave_categoria,nome_categoria,ordem_exibicao,tipo_valor,eh_percentual")
+        .execute()
+        .data
+        or []
+    )
+    category_defs = (
+        client.schema(SCORE_SCHEMA)
+        .table("dim.categories")
+        .select("categoria_id,chave_categoria,nome_categoria,ordem_exibicao")
+        .execute()
+        .data
+        or []
+    )
+
+    metric_defs_by_id = {row["metrica_id"]: row for row in metric_defs}
+    categories_by_key = {row["chave_categoria"]: row for row in category_defs}
+    metrics_by_category: dict[str, list[dict]] = {}
+
+    for metric in metric_rows:
+        if pd.isna(metric.get("valor")):
+            continue
+
+        definition = metric_defs_by_id.get(metric.get("metrica_id"), {})
+        category_key = definition.get("chave_categoria")
+        if not category_key:
+            continue
+
+        metrics_by_category.setdefault(category_key, []).append(
+            {
+                "name": definition.get("nome_metrica") or humanize_key(metric.get("coluna_metrica", "")),
+                "value": format_metric_value(metric.get("valor"), definition.get("eh_percentual")),
+                "order": definition.get("ordem_exibicao") or 999,
+            }
+        )
+
+    cards = []
+    for column, value in score_row.items():
+        if not column.startswith("percentil_") or pd.isna(value):
+            continue
+
+        score_key = column.replace("percentil_", "", 1)
+        category_keys = PERCENTILE_CATEGORY_MAP.get(score_key, [score_key])
+        category_names = [
+            categories_by_key[key]["nome_categoria"]
+            for key in category_keys
+            if key in categories_by_key
+        ]
+        raw_metrics = []
+        for key in category_keys:
+            raw_metrics.extend(metrics_by_category.get(key, []))
+
+        raw_metrics = sorted(raw_metrics, key=lambda item: item["order"])[:5]
+        cards.append(
+            {
+                "name": " / ".join(category_names) if category_names else humanize_key(score_key),
+                "percentile": max(0, min(100, float(value))),
+                "metrics": raw_metrics,
+                "order": min(
+                    [
+                        categories_by_key[key].get("ordem_exibicao") or 999
+                        for key in category_keys
+                        if key in categories_by_key
+                    ]
+                    or [999]
+                ),
+            }
+        )
+
+    return sorted(cards, key=lambda item: item["order"])
+
+
 def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str]:
     numeric_columns = df.select_dtypes(include=["number"]).columns.tolist()
     return [
@@ -631,6 +936,67 @@ def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str
         for column in numeric_columns
         if column not in excluded and not column.lower().endswith("_id") and column.lower() != "id"
     ]
+
+
+def render_performance_cards(cards: list[dict]) -> str:
+    if not cards:
+        return ""
+
+    card_html = []
+    for card in cards:
+        percentile = card["percentile"]
+        metrics = card["metrics"]
+        metric_rows = "".join(
+            f"""
+            <div class="metric-row">
+                <div class="metric-name">{html.escape(metric["name"])}</div>
+                <div class="metric-value">{html.escape(metric["value"])}</div>
+            </div>
+            """
+            for metric in metrics
+        )
+        if not metric_rows:
+            metric_rows = """
+            <div class="metric-row">
+                <div class="metric-name">Metricas brutas</div>
+                <div class="metric-value">-</div>
+            </div>
+            """
+
+        card_html.append(
+            f"""
+            <article class="performance-card">
+                <div class="performance-top">
+                    <div class="percent-gauge" style="--pct: {percentile:.2f}">
+                        <div class="percent-number">{percentile:.0f}</div>
+                    </div>
+                    <div>
+                        <div class="performance-label">Percentil</div>
+                        <div class="performance-name">{html.escape(card["name"])}</div>
+                        <div class="percent-bar" style="--pct: {percentile:.2f}">
+                            <div class="percent-fill"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-list">{metric_rows}</div>
+            </article>
+            """
+        )
+
+    return f"""
+    <section class="performance-section">
+        <div class="section-header">
+            <div>
+                <div class="player-kicker">Performance por categoria</div>
+                <h2 class="section-title">Percentis e metricas brutas</h2>
+            </div>
+            <p class="section-note">Score em percentil no topo; metricas da categoria abaixo</p>
+        </div>
+        <div class="performance-grid">
+            {''.join(card_html)}
+        </div>
+    </section>
+    """
 
 
 st.markdown(load_background_css(), unsafe_allow_html=True)
@@ -681,6 +1047,7 @@ player_id = player_row["jogador_id"] if "jogador_id" in player_row.index else No
 team_logo = load_team_logo(team_id)
 player_photo, player_photo_mime = load_player_photo(player_id)
 player_cluster, cluster_position_group = load_player_cluster(player_id)
+performance_cards = load_player_performance(player_id)
 team_logo_uri = image_data_uri(team_logo)
 player_photo_uri = image_data_uri(player_photo, player_photo_mime)
 team_logo_html = (
@@ -758,3 +1125,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+performance_html = render_performance_cards(performance_cards)
+if performance_html:
+    st.markdown(performance_html, unsafe_allow_html=True)
