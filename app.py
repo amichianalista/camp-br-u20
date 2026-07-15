@@ -20,32 +20,13 @@ TEAM_LOGO_BUCKET = "camp-br-u20-player-images"
 TEAM_LOGO_FOLDER = "teams"
 PLAYER_IMAGE_FOLDER = "players"
 SCORE_SCHEMA = "camp-br-u20"
-SCORE_TABLES = [
-    "fact.scores_players.atacantes",
-    "fact.scores_players.defensores",
-    "fact.scores_players.goleiros",
-    "fact.scores_players.laterais",
-    "fact.scores_players.meias",
+METRICS_TABLES = [
+    "fact.metrics_players.atacantes",
+    "fact.metrics_players.defensores",
+    "fact.metrics_players.goleiros",
+    "fact.metrics_players.laterais",
+    "fact.metrics_players.meias",
 ]
-PERCENTILE_CATEGORY_MAP = {
-    "finalizacao": ["qualidade_finalizacao"],
-    "presenca_area": ["qualidade_posicionamento"],
-    "criacao_apoio": ["assistencias"],
-    "apoio_construcao": ["precisao_passe", "precisao_cruzamento", "saida_de_jogo"],
-    "quebrar_linhas": ["quebrar_linhas"],
-    "disciplina": ["disciplina"],
-    "qualidade_defensiva": ["qualidade_defensiva", "qualidade_defesa"],
-    "qualidade_aerea": ["qualidade_aerea", "saida_aerea"],
-    "saida_de_bola": ["saida_de_jogo", "precisao_passe"],
-    "qualidade_defesa": ["qualidade_defesa"],
-    "saida_de_jogo": ["saida_de_jogo", "precisao_passe"],
-    "saida_aerea": ["saida_aerea"],
-    "criacao_ofensiva": ["assistencias", "precisao_cruzamento"],
-    "construcao_jogo": ["precisao_passe", "saida_de_jogo"],
-    "criacao": ["assistencias"],
-    "chegada_area": ["qualidade_posicionamento", "qualidade_finalizacao"],
-    "pressao_defensiva": ["qualidade_defensiva", "participacao_jogo"],
-}
 IMAGE_MIME_TYPES = {
     "jpg": "image/jpeg",
     "jpeg": "image/jpeg",
@@ -777,38 +758,6 @@ def load_player_photo(player_id: object) -> tuple[bytes | None, str]:
 
 
 @st.cache_data(ttl=300, show_spinner=False)
-def load_player_cluster(player_id: object) -> tuple[str | None, str | None]:
-    path_id = storage_path_id(player_id)
-    if not path_id:
-        return None, None
-
-    try:
-        normalized_player_id = int(path_id)
-    except ValueError:
-        normalized_player_id = path_id
-
-    client = get_supabase_client()
-    for table in SCORE_TABLES:
-        try:
-            rows = (
-                client.schema(SCORE_SCHEMA)
-                .table(table)
-                .select("player_id,cluster")
-                .eq("player_id", normalized_player_id)
-                .limit(1)
-                .execute()
-                .data
-                or []
-            )
-            if rows:
-                return rows[0].get("cluster"), table.rsplit(".", 1)[-1]
-        except Exception:  # noqa: BLE001
-            continue
-
-    return None, None
-
-
-@st.cache_data(ttl=300, show_spinner=False)
 def load_player_performance(player_id: object) -> list[dict]:
     path_id = storage_path_id(player_id)
     if not path_id:
@@ -820,41 +769,28 @@ def load_player_performance(player_id: object) -> list[dict]:
         normalized_player_id = path_id
 
     client = get_supabase_client()
-    score_row = None
-    score_table = None
+    metric_rows = []
 
-    for table in SCORE_TABLES:
+    for table in METRICS_TABLES:
         try:
             rows = (
                 client.schema(SCORE_SCHEMA)
                 .table(table)
                 .select("*")
                 .eq("player_id", normalized_player_id)
-                .limit(1)
                 .execute()
                 .data
                 or []
             )
             if rows:
-                score_row = rows[0]
-                score_table = table
+                metric_rows = rows
                 break
         except Exception:  # noqa: BLE001
             continue
 
-    if not score_row or not score_table:
+    if not metric_rows:
         return []
 
-    metrics_table = score_table.replace("fact.scores_players", "fact.metrics_players")
-    metric_rows = (
-        client.schema(SCORE_SCHEMA)
-        .table(metrics_table)
-        .select("*")
-        .eq("player_id", normalized_player_id)
-        .execute()
-        .data
-        or []
-    )
     metric_defs = (
         client.schema(SCORE_SCHEMA)
         .table("dim.metrics")
@@ -863,66 +799,65 @@ def load_player_performance(player_id: object) -> list[dict]:
         .data
         or []
     )
-    category_defs = (
-        client.schema(SCORE_SCHEMA)
-        .table("dim.categories")
-        .select("categoria_id,chave_categoria,nome_categoria,ordem_exibicao")
-        .execute()
-        .data
-        or []
-    )
 
     metric_defs_by_id = {row["metrica_id"]: row for row in metric_defs}
-    categories_by_key = {row["chave_categoria"]: row for row in category_defs}
-    metrics_by_category: dict[str, list[dict]] = {}
+    grouped: dict[str, dict] = {}
 
     for metric in metric_rows:
         if pd.isna(metric.get("valor")):
             continue
 
         definition = metric_defs_by_id.get(metric.get("metrica_id"), {})
-        category_key = definition.get("chave_categoria")
+        category_key = (
+            metric.get("categoria")
+            or definition.get("chave_categoria")
+            or metric.get("categoria_id")
+        )
         if not category_key:
             continue
 
-        metrics_by_category.setdefault(category_key, []).append(
+        category_key = str(category_key)
+        category = grouped.setdefault(
+            category_key,
             {
-                "name": definition.get("nome_metrica") or humanize_key(metric.get("coluna_metrica", "")),
+                "name": definition.get("nome_categoria")
+                or humanize_key(str(metric.get("categoria") or category_key)),
+                "metrics": [],
+                "order": definition.get("ordem_exibicao")
+                or metric.get("categoria_id")
+                or 999,
+                "percentiles": [],
+            },
+        )
+
+        category["order"] = min(
+            category["order"],
+            definition.get("ordem_exibicao") or metric.get("categoria_id") or 999,
+        )
+        category["metrics"].append(
+            {
+                "name": definition.get("nome_metrica")
+                or humanize_key(str(metric.get("coluna_metrica") or "")),
                 "value": format_metric_value(metric.get("valor"), definition.get("eh_percentual")),
                 "order": definition.get("ordem_exibicao") or 999,
             }
         )
+        if not pd.isna(metric.get("percentil")):
+            try:
+                category["percentiles"].append(float(metric.get("percentil")))
+            except (TypeError, ValueError):
+                pass
 
     cards = []
-    for column, value in score_row.items():
-        if not column.startswith("percentil_") or pd.isna(value):
-            continue
-
-        score_key = column.replace("percentil_", "", 1)
-        category_keys = PERCENTILE_CATEGORY_MAP.get(score_key, [score_key])
-        category_names = [
-            categories_by_key[key]["nome_categoria"]
-            for key in category_keys
-            if key in categories_by_key
-        ]
-        raw_metrics = []
-        for key in category_keys:
-            raw_metrics.extend(metrics_by_category.get(key, []))
-
-        raw_metrics = sorted(raw_metrics, key=lambda item: item["order"])[:5]
+    for category in grouped.values():
+        percentiles = category.pop("percentiles")
+        percentile = float(np.mean(percentiles)) if percentiles else 0.0
         cards.append(
             {
-                "name": " / ".join(category_names) if category_names else humanize_key(score_key),
-                "percentile": max(0, min(100, float(value))),
-                "metrics": raw_metrics,
-                "order": min(
-                    [
-                        categories_by_key[key].get("ordem_exibicao") or 999
-                        for key in category_keys
-                        if key in categories_by_key
-                    ]
-                    or [999]
-                ),
+                "name": category["name"],
+                "percentile": max(0, min(100, percentile)),
+                "metrics": sorted(category["metrics"], key=lambda item: item["order"])[:5],
+                "order": category["order"],
             }
         )
 
@@ -1040,7 +975,6 @@ team_id = player_row["time_id"] if "time_id" in player_row.index else None
 player_id = player_row["jogador_id"] if "jogador_id" in player_row.index else None
 team_logo = load_team_logo(team_id)
 player_photo, player_photo_mime = load_player_photo(player_id)
-player_cluster, cluster_position_group = load_player_cluster(player_id)
 performance_cards = load_player_performance(player_id)
 team_logo_uri = image_data_uri(team_logo)
 player_photo_uri = image_data_uri(player_photo, player_photo_mime)
@@ -1064,8 +998,8 @@ player_age = calculate_age(player_row["data_nascimento"]) if "data_nascimento" i
 player_birth_date = format_date(player_row["data_nascimento"]) if "data_nascimento" in player_row.index else "-"
 player_foot = row_value(player_row, "pe_preferido")
 player_contract = format_date(player_row["contrato_ate"]) if "contrato_ate" in player_row.index else "-"
-cluster_value = clean_text(player_cluster, "Sem cluster")
-cluster_source = clean_text(cluster_position_group, "Grupo nao identificado")
+cluster_value = row_value(player_row, "cluster", "Sem cluster")
+cluster_source = clean_text(player_position, "Grupo nao identificado")
 
 st.markdown(
     f"""
