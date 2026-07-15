@@ -9,7 +9,6 @@ from typing import Iterable
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 from dotenv import load_dotenv
 from supabase import Client, create_client
@@ -19,6 +18,13 @@ ROOT_DIR = Path(__file__).parent
 BACKGROUND_PATH = ROOT_DIR / "assets" / "background.png"
 TEAM_LOGO_BUCKET = "camp-br-u20-player-images"
 TEAM_LOGO_FOLDER = "teams"
+PLAYER_IMAGE_FOLDER = "players"
+IMAGE_MIME_TYPES = {
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "png": "image/png",
+    "webp": "image/webp",
+}
 
 TABLE_CANDIDATES = [
     "bio_jogadores",
@@ -111,7 +117,7 @@ def load_background_css() -> str:
             max-width: 1320px;
         }}
 
-        .hero {{
+        .team-hero {{
             background: linear-gradient(135deg, rgba(8, 16, 22, 0.90), rgba(8, 16, 22, 0.58));
             border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 8px;
@@ -125,7 +131,7 @@ def load_background_css() -> str:
             position: relative;
         }}
 
-        .hero::before {{
+        .team-hero::before {{
             background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
             content: "";
             height: 4px;
@@ -178,19 +184,82 @@ def load_background_css() -> str:
             margin: 0;
         }}
 
-        .quick-row {{
+        .player-kicker {{
+            color: rgba(34, 197, 94, 0.95);
+            font-size: 0.78rem;
+            font-weight: 800;
+            margin: 1.2rem 0 0.25rem 0;
+            text-transform: uppercase;
+        }}
+
+        .player-name {{
+            color: #f8fafc;
+            font-size: clamp(2.1rem, 4.6vw, 4.7rem);
+            font-weight: 900;
+            line-height: 0.95;
+            margin: 0;
+            text-shadow: 0 12px 38px rgba(0, 0, 0, 0.48);
+        }}
+
+        .player-position {{
+            color: rgba(248, 250, 252, 0.78);
+            font-size: clamp(1rem, 1.8vw, 1.35rem);
+            font-weight: 700;
+            margin: 0.35rem 0 0.9rem 0;
+        }}
+
+        .player-board {{
+            background:
+                linear-gradient(135deg, rgba(7, 13, 18, 0.92), rgba(7, 13, 18, 0.66));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            display: grid;
+            gap: 1.15rem;
+            grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+            overflow: hidden;
+            padding: 1rem;
+        }}
+
+        .player-photo {{
+            align-items: flex-end;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.32), rgba(2, 6, 23, 0.84));
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            min-height: 360px;
+            overflow: hidden;
+        }}
+
+        .player-photo img {{
+            display: block;
+            height: 360px;
+            max-width: 100%;
+            object-fit: contain;
+            object-position: bottom center;
+        }}
+
+        .player-photo-placeholder {{
+            color: rgba(226, 232, 240, 0.62);
+            font-size: 0.86rem;
+            font-weight: 700;
+            padding: 2rem;
+            text-align: center;
+            text-transform: uppercase;
+        }}
+
+        .bio-grid {{
             display: grid;
             gap: 0.75rem;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            margin: 0.95rem 0 1.15rem 0;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }}
 
         .bio-card {{
-            background: rgba(7, 13, 18, 0.76);
+            background: rgba(255, 255, 255, 0.075);
             border: 1px solid rgba(255, 255, 255, 0.13);
             border-radius: 8px;
-            min-height: 86px;
-            padding: 0.85rem 0.95rem;
+            min-height: 106px;
+            padding: 1rem;
         }}
 
         .bio-label {{
@@ -232,7 +301,7 @@ def load_background_css() -> str:
         }}
 
         @media (max-width: 760px) {{
-            .hero {{
+            .team-hero {{
                 grid-template-columns: 82px minmax(0, 1fr);
                 padding: 1rem;
             }}
@@ -247,7 +316,19 @@ def load_background_css() -> str:
                 max-width: 60px;
             }}
 
-            .quick-row {{
+            .player-board {{
+                grid-template-columns: 1fr;
+            }}
+
+            .player-photo {{
+                min-height: 300px;
+            }}
+
+            .player-photo img {{
+                height: 300px;
+            }}
+
+            .bio-grid {{
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }}
         }}
@@ -371,12 +452,12 @@ def format_height(value: object) -> str:
         return text
 
 
-def image_data_uri(image_bytes: bytes | None) -> str:
+def image_data_uri(image_bytes: bytes | None, mime_type: str = "image/png") -> str:
     if not image_bytes:
         return ""
 
     encoded = base64.b64encode(image_bytes).decode("utf-8")
-    return f"data:image/png;base64,{encoded}"
+    return f"data:{mime_type};base64,{encoded}"
 
 
 def normalized_options(series: pd.Series) -> list[str]:
@@ -411,6 +492,25 @@ def load_team_logo(team_id: object) -> bytes | None:
         return get_supabase_client().storage.from_(bucket).download(path)
     except Exception:  # noqa: BLE001
         return None
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_player_photo(player_id: object) -> tuple[bytes | None, str]:
+    path_id = storage_path_id(player_id)
+    if not path_id:
+        return None, "image/png"
+
+    bucket = get_env_value("SUPABASE_PLAYER_IMAGE_BUCKET") or TEAM_LOGO_BUCKET
+    folder = get_env_value("SUPABASE_PLAYER_IMAGE_FOLDER") or PLAYER_IMAGE_FOLDER
+
+    for extension, mime_type in IMAGE_MIME_TYPES.items():
+        try:
+            path = f"{folder}/{path_id}.{extension}"
+            return get_supabase_client().storage.from_(bucket).download(path), mime_type
+        except Exception:  # noqa: BLE001
+            continue
+
+    return None, "image/png"
 
 
 def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str]:
@@ -466,136 +566,75 @@ player_row = player_rows.iloc[0]
 excluded_columns = {team_column, player_column}
 numeric_columns = numeric_columns_for_player(player_rows, excluded_columns)
 team_id = player_row["time_id"] if "time_id" in player_row.index else None
+player_id = player_row["jogador_id"] if "jogador_id" in player_row.index else None
 team_logo = load_team_logo(team_id)
+player_photo, player_photo_mime = load_player_photo(player_id)
 team_logo_uri = image_data_uri(team_logo)
+player_photo_uri = image_data_uri(player_photo, player_photo_mime)
 team_logo_html = (
     f'<img src="{team_logo_uri}" alt="Escudo {html.escape(selected_team)}">'
     if team_logo_uri
     else ""
 )
+player_photo_html = (
+    f'<img src="{player_photo_uri}" alt="Foto {html.escape(selected_player)}">'
+    if player_photo_uri
+    else '<div class="player-photo-placeholder">Foto indisponivel</div>'
+)
 player_position = row_value(player_row, "posicao_principal_detalhada") or row_value(player_row, "posicao_jogador")
 player_country = row_value(player_row, "pais")
 player_height = format_height(player_row["altura_cm"]) if "altura_cm" in player_row.index else "-"
 player_age = calculate_age(player_row["data_nascimento"]) if "data_nascimento" in player_row.index else "-"
+player_birth_date = row_value(player_row, "data_nascimento")
 player_foot = row_value(player_row, "pe_preferido")
 player_contract = row_value(player_row, "contrato_ate")
 
 st.markdown(
     f"""
-    <section class="hero">
+    <section class="team-hero">
         <div class="team-crest">{team_logo_html}</div>
         <div>
             <div class="eyebrow">Campeonato Brasileiro Sub-20 2026</div>
             <div class="main-title">{html.escape(selected_team)}</div>
-            <p class="subtitle">{html.escape(selected_player)} | {html.escape(player_position)}</p>
+            <p class="subtitle">Perfil biografico do elenco e acompanhamento individual</p>
         </div>
     </section>
-    <section class="quick-row">
-        <div class="bio-card">
-            <div class="bio-label">Altura</div>
-            <div class="bio-value">{html.escape(player_height)}</div>
-        </div>
-        <div class="bio-card">
-            <div class="bio-label">Idade</div>
-            <div class="bio-value">{html.escape(player_age)}</div>
-        </div>
-        <div class="bio-card">
-            <div class="bio-label">Pe preferido</div>
-            <div class="bio-value">{html.escape(player_foot)}</div>
-        </div>
-        <div class="bio-card">
-            <div class="bio-label">Pais</div>
-            <div class="bio-value">{html.escape(player_country)}</div>
-        </div>
-        <div class="bio-card">
-            <div class="bio-label">Contrato ate</div>
-            <div class="bio-value">{html.escape(player_contract)}</div>
+    <section>
+        <div class="player-kicker">Jogador selecionado</div>
+        <h1 class="player-name">{html.escape(selected_player)}</h1>
+        <p class="player-position">{html.escape(player_position)}</p>
+    </section>
+    <section class="player-board">
+        <div class="player-photo">{player_photo_html}</div>
+        <div class="bio-grid">
+            <div class="bio-card">
+                <div class="bio-label">Altura</div>
+                <div class="bio-value">{html.escape(player_height)}</div>
+            </div>
+            <div class="bio-card">
+                <div class="bio-label">Idade</div>
+                <div class="bio-value">{html.escape(player_age)}</div>
+            </div>
+            <div class="bio-card">
+                <div class="bio-label">Pe preferido</div>
+                <div class="bio-value">{html.escape(player_foot)}</div>
+            </div>
+            <div class="bio-card">
+                <div class="bio-label">Pais</div>
+                <div class="bio-value">{html.escape(player_country)}</div>
+            </div>
+            <div class="bio-card">
+                <div class="bio-label">Contrato ate</div>
+                <div class="bio-value">{html.escape(player_contract)}</div>
+            </div>
+            <div class="bio-card">
+                <div class="bio-label">Nascimento</div>
+                <div class="bio-value">{html.escape(player_birth_date)}</div>
+            </div>
         </div>
     </section>
     """,
     unsafe_allow_html=True,
 )
-
-left, right = st.columns([1.05, 0.95], gap="large")
-
-with left:
-    st.subheader("Ficha do Atleta")
-    display_columns = [
-        column
-        for column in [
-            player_column,
-            "posicao_principal_detalhada",
-            "posicao_jogador",
-            "altura_cm",
-            "data_nascimento",
-            "pe_preferido",
-            "pais",
-            "contrato_ate",
-            team_column,
-        ]
-        if column in player_rows.columns
-    ]
-    display_data = player_rows[display_columns].dropna(axis=1, how="all").copy()
-    display_data = display_data.rename(
-        columns={
-            player_column: "Jogador",
-            team_column: "Time",
-            "posicao_principal_detalhada": "Posicao",
-            "posicao_jogador": "Perfil",
-            "altura_cm": "Altura",
-            "data_nascimento": "Nascimento",
-            "pe_preferido": "Pe preferido",
-            "pais": "Pais",
-            "contrato_ate": "Contrato ate",
-        }
-    )
-    st.dataframe(display_data, use_container_width=True, hide_index=True)
-
-with right:
-    st.subheader("Mapa do Elenco")
-    position_column = (
-        "posicao_principal_detalhada"
-        if "posicao_principal_detalhada" in team_data.columns
-        else "posicao_jogador"
-        if "posicao_jogador" in team_data.columns
-        else None
-    )
-
-    if position_column:
-        chart_data = (
-            team_data[position_column]
-            .dropna()
-            .astype(str)
-            .str.replace("_", " ")
-            .str.title()
-            .value_counts()
-            .reset_index()
-        )
-        chart_data.columns = ["posicao", "jogadores"]
-        chart_data = chart_data.sort_values("jogadores", ascending=True)
-
-        fig = px.bar(
-            chart_data,
-            x="jogadores",
-            y="posicao",
-            orientation="h",
-            text="jogadores",
-            color="jogadores",
-            color_continuous_scale=["#22c55e", "#facc15", "#38bdf8"],
-        )
-        fig.update_layout(
-            height=max(360, 28 * len(chart_data)),
-            margin=dict(l=8, r=8, t=8, b=8),
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font_color="#f8fafc",
-            coloraxis_showscale=False,
-            xaxis=dict(gridcolor="rgba(255,255,255,0.12)", zeroline=False, title=""),
-            yaxis=dict(gridcolor="rgba(255,255,255,0.00)", title=""),
-        )
-        fig.update_traces(textposition="outside", cliponaxis=False)
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("Ainda nao ha dados suficientes para montar o mapa do elenco.")
 
 st.caption(f"Tabela Supabase: {table_name}")
