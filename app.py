@@ -767,18 +767,22 @@ def storage_path_id(value: object) -> str | None:
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def load_team_logo(team_id: object) -> bytes | None:
+def load_team_logo(team_id: object) -> tuple[bytes | None, str]:
     path_id = storage_path_id(team_id)
     if not path_id:
-        return None
+        return None, "image/png"
 
-    try:
-        bucket = get_env_value("SUPABASE_TEAM_LOGO_BUCKET") or TEAM_LOGO_BUCKET
-        folder = get_env_value("SUPABASE_TEAM_LOGO_FOLDER") or TEAM_LOGO_FOLDER
-        path = f"{folder}/{path_id}.png"
-        return get_supabase_client().storage.from_(bucket).download(path)
-    except Exception:  # noqa: BLE001
-        return None
+    bucket = get_env_value("SUPABASE_TEAM_LOGO_BUCKET") or TEAM_LOGO_BUCKET
+    folder = get_env_value("SUPABASE_TEAM_LOGO_FOLDER") or TEAM_LOGO_FOLDER
+
+    for extension, mime_type in IMAGE_MIME_TYPES.items():
+        try:
+            path = f"{folder}/{path_id}.{extension}"
+            return get_supabase_client().storage.from_(bucket).download(path), mime_type
+        except Exception:  # noqa: BLE001
+            continue
+
+    return None, "image/png"
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -1027,10 +1031,10 @@ excluded_columns = {team_column, player_column}
 numeric_columns = numeric_columns_for_player(player_rows, excluded_columns)
 team_id = player_row["time_id"] if "time_id" in player_row.index else None
 player_id = player_row["jogador_id"] if "jogador_id" in player_row.index else None
-team_logo = load_team_logo(team_id)
+team_logo, team_logo_mime = load_team_logo(team_id)
 player_photo, player_photo_mime = load_player_photo(player_id)
 performance_cards = load_player_performance(player_id)
-team_logo_uri = image_data_uri(team_logo)
+team_logo_uri = image_data_uri(team_logo, team_logo_mime)
 player_photo_uri = image_data_uri(player_photo, player_photo_mime)
 team_logo_html = (
     f'<img src="{team_logo_uri}" alt="Escudo {html.escape(selected_team)}">'
