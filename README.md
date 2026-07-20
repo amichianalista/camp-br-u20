@@ -1,13 +1,14 @@
-# Brasileiro Sub-20 2026 - Visualizacao
+# Scout Tecnico Base BR
 
-Aplicacao Streamlit para consultar perfis de jogadores do Campeonato Brasileiro Sub-20 2026. A tela combina dados biograficos, imagens do Supabase Storage, cluster do jogador e cards de performance por categoria.
+Aplicacao Streamlit para scouting tecnico de jogadores de base. O recorte atual consulta perfis de jogadores do Campeonato Brasileiro Sub-20 2026, combinando dados biograficos, imagens do Supabase Storage, cluster do jogador e cards de performance por categoria.
 
 ## Visao geral
 
 - Framework principal: Streamlit.
+- Pasta do projeto: `scout-tecnico-base-br`.
 - Fonte de dados: Supabase.
-- Tabela base padrao: `camp-br-u20.bio_jogadores`.
-- Imagens: bucket `camp-br-u20-player-images`, com pastas `teams` e `players`.
+- Tabela base padrao: `jogadores-br-sub-20.bio_jogadores`.
+- Imagens: bucket `jogadores-br-sub-20`, com pastas `teams` e `players`.
 - Arquivo principal: `app.py`.
 - Asset local: `assets/background.png`, usado como plano de fundo.
 
@@ -32,14 +33,15 @@ Crie um `.env` com base em `.env.example`.
 ```env
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
+SUPABASE_DATABASE_URL=
 
-SUPABASE_SCHEMA=camp-br-u20
+SUPABASE_SCHEMA=jogadores-br-sub-20
 SUPABASE_TABLE=bio_jogadores
 SUPABASE_TEAM_COLUMN=
 SUPABASE_PLAYER_COLUMN=
-SUPABASE_TEAM_LOGO_BUCKET=camp-br-u20-player-images
+SUPABASE_TEAM_LOGO_BUCKET=jogadores-br-sub-20
 SUPABASE_TEAM_LOGO_FOLDER=teams
-SUPABASE_PLAYER_IMAGE_BUCKET=camp-br-u20-player-images
+SUPABASE_PLAYER_IMAGE_BUCKET=jogadores-br-sub-20
 SUPABASE_PLAYER_IMAGE_FOLDER=players
 ```
 
@@ -80,6 +82,7 @@ Se preferir usar Python diretamente:
 
 - `streamlit`
 - `supabase`
+- `psycopg[binary]`
 - `python-dotenv`
 - `pandas`
 - `numpy`
@@ -90,6 +93,7 @@ Se preferir usar Python diretamente:
 
 ## Pontos de atencao
 
+- O app usa `SUPABASE_DATABASE_URL` para consultar tabelas e metricas diretamente quando o PostgREST do Supabase estiver indisponivel.
 - O app depende de `jogador_id` para foto e performance.
 - O escudo do time usa `time_id`.
 - As imagens sao buscadas no Supabase Storage por padrao como `teams/{time_id}.png` e `players/{jogador_id}.{jpg,jpeg,png,webp}`.

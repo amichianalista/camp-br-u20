@@ -9,17 +9,20 @@ from typing import Iterable
 
 import numpy as np
 import pandas as pd
+import psycopg
 import streamlit as st
+from psycopg import sql
 from dotenv import load_dotenv
 from supabase import Client, create_client
 
 
 ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / ".env")
 BACKGROUND_PATH = ROOT_DIR / "assets" / "background.png"
-TEAM_LOGO_BUCKET = "camp-br-u20-player-images"
+TEAM_LOGO_BUCKET = "jogadores-br-sub-20"
 TEAM_LOGO_FOLDER = "teams"
 PLAYER_IMAGE_FOLDER = "players"
-SCORE_SCHEMA = "camp-br-u20"
+SCORE_SCHEMA = "jogadores-br-sub-20"
 METRICS_TABLES = [
     "fact.metrics_players.atacantes",
     "fact.metrics_players.defensores",
@@ -44,6 +47,7 @@ TABLE_CANDIDATES = [
     "jogadores",
     "players",
     "camp_br_u20",
+    "jogadores_br_sub_20",
     "brasileirao_sub20_2026",
     "jogadores_brasileirao_sub20_2026",
 ]
@@ -70,7 +74,7 @@ PLAYER_COLUMN_CANDIDATES = [
 
 
 st.set_page_config(
-    page_title="Brasileiro Sub-20 2026",
+    page_title="Scout Tecnico Base BR",
     page_icon=str(BACKGROUND_PATH),
     layout="wide",
     initial_sidebar_state="expanded",
@@ -542,48 +546,87 @@ def get_supabase_client() -> Client:
     return create_client(url, key)
 
 
+def get_score_schema() -> str:
+    return get_env_value("SUPABASE_SCHEMA") or SCORE_SCHEMA
+
+
+def get_database_url() -> str | None:
+    return get_env_value("SUPABASE_DATABASE_URL")
+
+
+def fetch_rows_from_database(
+    schema: str,
+    table: str,
+    where_column: str | None = None,
+    where_value: object | None = None,
+) -> list[dict]:
+    database_url = get_database_url()
+    if not database_url:
+        raise RuntimeError("SUPABASE_DATABASE_URL nao configurado.")
+
+    query = sql.SQL("select * from {}.{}").format(sql.Identifier(schema), sql.Identifier(table))
+    params: tuple[object, ...] = ()
+    if where_column:
+        query += sql.SQL(" where {} = %s").format(sql.Identifier(where_column))
+        params = (where_value,)
+
+    with psycopg.connect(database_url, connect_timeout=20) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(query, params)
+            columns = [description.name for description in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+def fetch_rows_from_supabase_api(schema: str, table: str) -> list[dict]:
+    client = get_supabase_client()
+    rows: list[dict] = []
+    page_size = 1000
+    start = 0
+
+    while True:
+        response = (
+            client.schema(schema)
+            .table(table)
+            .select("*")
+            .range(start, start + page_size - 1)
+            .execute()
+        )
+        batch = response.data or []
+        rows.extend(batch)
+
+        if len(batch) < page_size:
+            break
+
+        start += page_size
+
+    return rows
+
+
 @st.cache_data(ttl=300, show_spinner="Carregando dados do Supabase...")
 def load_table_data() -> tuple[pd.DataFrame, str]:
-    client = get_supabase_client()
-    schema = get_env_value("SUPABASE_SCHEMA") or "camp-br-u20"
+    schema = get_score_schema()
     preferred_table = get_env_value("SUPABASE_TABLE", "SUPABASE_PLAYERS_TABLE")
     tables = [preferred_table, *TABLE_CANDIDATES] if preferred_table else TABLE_CANDIDATES
     last_error = ""
 
     for table in dict.fromkeys(filter(None, tables)):
         try:
-            rows: list[dict] = []
-            page_size = 1000
-            start = 0
-
-            while True:
-                response = (
-                    client.schema(schema)
-                    .table(table)
-                    .select("*")
-                    .range(start, start + page_size - 1)
-                    .execute()
-                )
-                batch = response.data or []
-                rows.extend(batch)
-
-                if len(batch) < page_size:
-                    break
-
-                start += page_size
-
+            rows = (
+                fetch_rows_from_database(schema, table)
+                if get_database_url()
+                else fetch_rows_from_supabase_api(schema, table)
+            )
             if rows:
                 return pd.DataFrame(rows), f"{schema}.{table}"
         except Exception as exc:  # noqa: BLE001
             last_error = str(exc)
 
-    detail = f" Último retorno: {last_error}" if last_error else ""
+    detail = f" Ultimo retorno: {last_error}" if last_error else ""
     raise RuntimeError(
-        "Não encontrei uma tabela de jogadores com os nomes esperados. "
+        "Nao encontrei uma tabela de jogadores com os nomes esperados. "
         "Defina SUPABASE_TABLE no .env com o nome correto da tabela."
         + detail
     )
-
 
 def format_number(value: object) -> str:
     if pd.isna(value):
@@ -768,20 +811,24 @@ def load_player_performance(player_id: object) -> list[dict]:
     except ValueError:
         normalized_player_id = path_id
 
-    client = get_supabase_client()
+    schema = get_score_schema()
     metric_rows = []
 
     for table in METRICS_TABLES:
         try:
-            rows = (
-                client.schema(SCORE_SCHEMA)
-                .table(table)
-                .select("*")
-                .eq("player_id", normalized_player_id)
-                .execute()
-                .data
-                or []
-            )
+            if get_database_url():
+                rows = fetch_rows_from_database(schema, table, "player_id", normalized_player_id)
+            else:
+                rows = (
+                    get_supabase_client()
+                    .schema(schema)
+                    .table(table)
+                    .select("*")
+                    .eq("player_id", normalized_player_id)
+                    .execute()
+                    .data
+                    or []
+                )
             if rows:
                 metric_rows = rows
                 break
@@ -791,14 +838,22 @@ def load_player_performance(player_id: object) -> list[dict]:
     if not metric_rows:
         return []
 
-    metric_defs = (
-        client.schema(SCORE_SCHEMA)
-        .table("dim.metrics")
-        .select("metrica_id,nome_metrica,categoria_id,chave_categoria,nome_categoria,ordem_exibicao,tipo_valor,eh_percentual")
-        .execute()
-        .data
-        or []
-    )
+    try:
+        metric_defs = (
+            fetch_rows_from_database(schema, "dim.metrics")
+            if get_database_url()
+            else (
+                get_supabase_client()
+                .schema(schema)
+                .table("dim.metrics")
+                .select("metrica_id,nome_metrica,categoria_id,chave_categoria,nome_categoria,ordem_exibicao,tipo_valor,eh_percentual")
+                .execute()
+                .data
+                or []
+            )
+        )
+    except Exception:  # noqa: BLE001
+        metric_defs = []
 
     metric_defs_by_id = {row["metrica_id"]: row for row in metric_defs}
     grouped: dict[str, dict] = {}
@@ -862,7 +917,6 @@ def load_player_performance(player_id: object) -> list[dict]:
         )
 
     return sorted(cards, key=lambda item: item["order"])
-
 
 def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str]:
     numeric_columns = df.select_dtypes(include=["number"]).columns.tolist()
@@ -1006,9 +1060,9 @@ st.markdown(
     <section class="team-hero">
         <div class="team-crest">{team_logo_html}</div>
         <div>
-            <div class="eyebrow">Campeonato Brasileiro Sub-20 2026</div>
+            <div class="eyebrow">Scout Tecnico Base BR</div>
             <div class="main-title">{html.escape(selected_team)}</div>
-            <p class="subtitle">Bio, contexto e leitura individual de desempenho</p>
+            <p class="subtitle">Campeonato Brasileiro Sub-20 2026 &middot; bio, contexto e leitura individual de desempenho</p>
         </div>
     </section>
     <section>
