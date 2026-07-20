@@ -74,7 +74,7 @@ PLAYER_COLUMN_CANDIDATES = [
 
 
 st.set_page_config(
-    page_title="Scout Tecnico Base BR",
+    page_title="Variaveis Tecnicas | Base BR",
     page_icon=str(BACKGROUND_PATH),
     layout="wide",
     initial_sidebar_state="expanded",
@@ -957,7 +957,7 @@ def render_performance_cards(cards: list[dict]) -> str:
             f'<div class="percent-number">{percentile:.0f}</div>'
             "</div>"
             "<div>"
-            '<div class="performance-label">Percentil</div>'
+            '<div class="performance-label">Nivel no grupo</div>'
             f'<div class="performance-name">{html.escape(card["name"])}</div>'
             f'<div class="percent-bar" style="--pct: {percentile:.2f}">'
             '<div class="percent-fill"></div>'
@@ -972,10 +972,10 @@ def render_performance_cards(cards: list[dict]) -> str:
         '<section class="performance-section">'
         '<div class="section-header">'
         "<div>"
-        '<div class="player-kicker">Leitura de performance</div>'
-        '<h2 class="section-title">Desempenho por categoria</h2>'
+        '<div class="player-kicker">Leitura de jogo</div>'
+        '<h2 class="section-title">Variaveis tecnicas</h2>'
         "</div>"
-        '<p class="section-note">Percentil médio frente ao grupo da posição; métricas principais abaixo</p>'
+        '<p class="section-note">Comparativo com atletas da mesma funcao; indicadores de jogo abaixo</p>'
         "</div>"
         f'<div class="performance-grid">{"".join(card_html)}</div>'
         "</section>"
@@ -1010,15 +1010,15 @@ if not player_column or player_column not in data.columns:
 teams = normalized_options(data[team_column])
 
 with st.sidebar:
-    st.title("Filtros")
-    selected_team = st.selectbox("Time", teams, index=0 if teams else None)
+    st.title("Selecao")
+    selected_team = st.selectbox("Clube", teams, index=0 if teams else None)
 
     team_data = data[data[team_column].astype(str).str.strip() == selected_team].copy()
     players = normalized_options(team_data[player_column])
-    selected_player = st.selectbox("Jogador", players, index=0 if players else None)
+    selected_player = st.selectbox("Atleta", players, index=0 if players else None)
 
 if not selected_team or not selected_player:
-    st.warning("Selecione um time e um jogador.")
+    st.warning("Selecione um clube e um atleta.")
     st.stop()
 
 player_rows = team_data[team_data[player_column].astype(str).str.strip() == selected_player].copy()
@@ -1062,11 +1062,11 @@ st.markdown(
         <div>
             <div class="eyebrow">Scout Tecnico Base BR</div>
             <div class="main-title">{html.escape(selected_team)}</div>
-            <p class="subtitle">Campeonato Brasileiro Sub-20 2026 &middot; bio, contexto e leitura individual de desempenho</p>
+            <p class="subtitle">Repertorio, funcao e desempenho acumulado nas competicoes de base</p>
         </div>
     </section>
     <section>
-        <div class="player-kicker">Jogador selecionado</div>
+        <div class="player-kicker">Relatorio tecnico</div>
         <h1 class="player-name">{html.escape(selected_player)}</h1>
         <p class="player-position">{html.escape(player_position)}</p>
     </section>
@@ -1099,9 +1099,9 @@ st.markdown(
             </div>
         </div>
         <div class="cluster-panel">
-            <div class="cluster-label">Perfil de jogo</div>
+            <div class="cluster-label">Funcao tecnica</div>
             <div class="cluster-value">{html.escape(cluster_value)}</div>
-            <div class="cluster-source">Posição-base: {html.escape(cluster_source)}</div>
+            <div class="cluster-source">Funcao-base: {html.escape(cluster_source)}</div>
         </div>
     </section>
     """,

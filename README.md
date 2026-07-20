@@ -1,6 +1,6 @@
 # Scout Tecnico Base BR
 
-Aplicacao Streamlit para scouting tecnico de jogadores de base. O recorte atual consulta perfis de jogadores do Campeonato Brasileiro Sub-20 2026, combinando dados biograficos, imagens do Supabase Storage, cluster do jogador e cards de performance por categoria.
+Aplicacao Streamlit para scouting tecnico de jogadores de base. A visualizacao agrega historico de competicoes disputadas pelos atletas e combina dados biograficos, imagens do Supabase Storage, perfil tecnico e variaveis de jogo por funcao.
 
 ## Visao geral
 
@@ -24,7 +24,7 @@ Aplicacao Streamlit para scouting tecnico de jogadores de base. O recorte atual 
    - foto do jogador;
    - cards de bio, como altura, idade, pe preferido, pais, contrato e nascimento;
    - cluster vindo de `bio_jogadores`;
-   - cards de performance agrupados por categoria, com percentis e metricas brutas.
+   - cards de variaveis tecnicas agrupadas por tipo de acao em campo.
 
 ## Variaveis de ambiente
 
@@ -53,7 +53,7 @@ A base biografica vem da tabela configurada em `SUPABASE_TABLE`. Se ela nao esti
 
 O cluster do jogador fica em `bio_jogadores.cluster`.
 
-A performance vem das tabelas de metricas por posicao:
+A leitura tecnica vem das tabelas de indicadores por posicao:
 
 - `fact.metrics_players.atacantes`
 - `fact.metrics_players.defensores`
@@ -61,7 +61,7 @@ A performance vem das tabelas de metricas por posicao:
 - `fact.metrics_players.laterais`
 - `fact.metrics_players.meias`
 
-Cada linha de metrica ja deve trazer `categoria`, `categoria_id`, `percentil`, `metrica_id`, `valor`, `player_id` e `posicao`. O app encontra a tabela que contem o `player_id`, agrupa as linhas por `categoria` e calcula o percentil exibido no card pela media dos percentis das metricas daquela categoria. A dimensao `dim.metrics` e usada para nomes, ordem e formatacao percentual.
+Cada linha de indicador deve trazer `categoria`, `categoria_id`, `percentil`, `metrica_id`, `valor`, `player_id` e `posicao`. O app encontra a tabela que contem o `player_id`, agrupa as linhas por `categoria` e exibe uma leitura relativa do atleta dentro do grupo da mesma funcao. A dimensao `dim.metrics` e usada para nomes, ordem e formatacao.
 
 ## Como rodar
 
