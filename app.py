@@ -72,6 +72,15 @@ PLAYER_COLUMN_CANDIDATES = [
     "name",
 ]
 
+POSITION_COLUMN_CANDIDATES = [
+    "posicao_principal_detalhada",
+    "posicao_principal",
+    "posicao_jogador",
+    "posicao",
+    "position",
+    "player_position",
+]
+
 
 st.set_page_config(
     page_title="Variaveis Tecnicas | Base BR",
@@ -1002,6 +1011,10 @@ player_column = get_env_value("SUPABASE_PLAYER_COLUMN") or first_existing_column
     data.columns,
     PLAYER_COLUMN_CANDIDATES,
 )
+position_column = get_env_value("SUPABASE_POSITION_COLUMN") or first_existing_column(
+    data.columns,
+    POSITION_COLUMN_CANDIDATES,
+)
 
 if not team_column or team_column not in data.columns:
     st.error("Não encontrei a coluna do time. Defina SUPABASE_TEAM_COLUMN no .env.")
@@ -1018,14 +1031,25 @@ with st.sidebar:
     selected_team = st.selectbox("Clube", teams, index=0 if teams else None)
 
     team_data = data[data[team_column].astype(str).str.strip() == selected_team].copy()
-    players = normalized_options(team_data[player_column])
+    filtered_data = team_data
+    if position_column and position_column in team_data.columns:
+        position_options = ["Todas as posicoes", *normalized_options(team_data[position_column])]
+        selected_position = st.selectbox("Posicao principal", position_options, index=0)
+        if selected_position != "Todas as posicoes":
+            filtered_data = team_data[
+                team_data[position_column].astype(str).str.strip() == selected_position
+            ].copy()
+
+    players = normalized_options(filtered_data[player_column])
     selected_player = st.selectbox("Atleta", players, index=0 if players else None)
 
 if not selected_team or not selected_player:
     st.warning("Selecione um clube e um atleta.")
     st.stop()
 
-player_rows = team_data[team_data[player_column].astype(str).str.strip() == selected_player].copy()
+player_rows = filtered_data[
+    filtered_data[player_column].astype(str).str.strip() == selected_player
+].copy()
 player_row = player_rows.iloc[0]
 excluded_columns = {team_column, player_column}
 numeric_columns = numeric_columns_for_player(player_rows, excluded_columns)

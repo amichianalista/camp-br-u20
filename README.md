@@ -17,7 +17,7 @@ Aplicacao Streamlit para scouting tecnico de jogadores de base. A visualizacao a
 1. O app carrega as credenciais e configuracoes do `.env`.
 2. Busca a tabela principal de jogadores no Supabase.
 3. Identifica as colunas de time e jogador automaticamente, ou usa `SUPABASE_TEAM_COLUMN` e `SUPABASE_PLAYER_COLUMN`.
-4. Exibe filtros na sidebar para selecionar time e jogador.
+4. Exibe filtros na sidebar para selecionar time, posicao principal e jogador.
 5. Renderiza:
    - hero do time com escudo;
    - nome e posicao do jogador;
@@ -39,6 +39,7 @@ SUPABASE_SCHEMA=jogadores-br-sub-20
 SUPABASE_TABLE=bio_jogadores
 SUPABASE_TEAM_COLUMN=
 SUPABASE_PLAYER_COLUMN=
+SUPABASE_POSITION_COLUMN=
 SUPABASE_TEAM_LOGO_BUCKET=jogadores-br-sub-20
 SUPABASE_TEAM_LOGO_FOLDER=teams
 SUPABASE_PLAYER_IMAGE_BUCKET=jogadores-br-sub-20
