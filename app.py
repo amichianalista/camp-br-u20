@@ -86,7 +86,7 @@ st.set_page_config(
     page_title="Variaveis Tecnicas | Base BR",
     page_icon=str(BACKGROUND_PATH),
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 
@@ -123,19 +123,37 @@ def load_background_css() -> str:
             background-attachment: fixed;
         }}
 
-        [data-testid="stSidebar"] {{
-            background: rgba(4, 10, 14, 0.94);
-            border-right: 1px solid rgba(255, 255, 255, 0.13);
-        }}
-
         [data-testid="stHeader"] {{
             background: rgba(0, 0, 0, 0);
         }}
 
         .block-container {{
-            padding-top: 0.7rem;
-            padding-bottom: 1.25rem;
-            max-width: 1240px;
+            max-width: 1080px;
+            min-height: 1030px;
+            padding-bottom: 1rem;
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            padding-top: 0.45rem;
+        }}
+
+        .filter-heading {{
+            color: rgba(34, 197, 94, 0.95);
+            font-size: 0.72rem;
+            font-weight: 800;
+            margin: 0 0 0.25rem 0;
+            text-transform: uppercase;
+        }}
+
+        div[data-testid="stSelectbox"] label p {{
+            color: rgba(226, 232, 240, 0.74);
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }}
+
+        div[data-testid="stSelectbox"] > div {{
+            background: rgba(7, 13, 18, 0.78);
+            border-radius: 8px;
         }}
 
         .team-hero {{
@@ -146,9 +164,10 @@ def load_background_css() -> str:
             display: grid;
             grid-template-columns: 96px minmax(0, 1fr);
             gap: 0.95rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.55rem;
+            margin-top: 0.25rem;
             overflow: hidden;
-            padding: 0.8rem 1rem;
+            padding: 0.68rem 0.9rem;
             position: relative;
         }}
 
@@ -168,15 +187,15 @@ def load_background_css() -> str:
             border: 1px solid rgba(255, 255, 255, 0.45);
             border-radius: 8px;
             display: flex;
-            height: 88px;
+            height: 78px;
             justify-content: center;
             padding: 0.65rem;
-            width: 88px;
+            width: 78px;
         }}
 
         .team-crest img {{
-            max-height: 68px;
-            max-width: 68px;
+            max-height: 60px;
+            max-width: 60px;
             object-fit: contain;
         }}
 
@@ -209,7 +228,7 @@ def load_background_css() -> str:
             color: rgba(34, 197, 94, 0.95);
             font-size: 0.78rem;
             font-weight: 800;
-            margin: 0.55rem 0 0.18rem 0;
+            margin: 0.35rem 0 0.16rem 0;
             text-transform: uppercase;
         }}
 
@@ -236,10 +255,10 @@ def load_background_css() -> str:
             border-radius: 8px;
             display: grid;
             align-items: start;
-            gap: 0.8rem;
-            grid-template-columns: minmax(170px, 220px) minmax(0, 1fr) minmax(190px, 250px);
+            gap: 0.65rem;
+            grid-template-columns: minmax(160px, 205px) minmax(0, 1fr) minmax(180px, 225px);
             overflow: hidden;
-            padding: 0.75rem;
+            padding: 0.65rem;
         }}
 
         .player-photo {{
@@ -249,13 +268,13 @@ def load_background_css() -> str:
             border-radius: 8px;
             display: flex;
             justify-content: center;
-            min-height: 245px;
+            min-height: 220px;
             overflow: hidden;
         }}
 
         .player-photo img {{
             display: block;
-            height: 245px;
+            height: 220px;
             max-width: 100%;
             object-fit: cover;
             object-position: center top;
@@ -274,8 +293,8 @@ def load_background_css() -> str:
         .bio-grid {{
             display: grid;
             align-content: start;
-            gap: 0.55rem;
-            grid-auto-rows: minmax(72px, auto);
+            gap: 0.45rem;
+            grid-auto-rows: minmax(66px, auto);
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }}
 
@@ -283,8 +302,8 @@ def load_background_css() -> str:
             background: rgba(255, 255, 255, 0.075);
             border: 1px solid rgba(255, 255, 255, 0.13);
             border-radius: 8px;
-            min-height: 72px;
-            padding: 0.62rem 0.72rem;
+            min-height: 66px;
+            padding: 0.52rem 0.64rem;
         }}
 
         .bio-label {{
@@ -311,8 +330,8 @@ def load_background_css() -> str:
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-height: 245px;
-            padding: 1rem;
+            min-height: 220px;
+            padding: 0.85rem;
         }}
 
         .cluster-label {{
@@ -339,7 +358,7 @@ def load_background_css() -> str:
         }}
 
         .performance-section {{
-            margin-top: 0.9rem;
+            margin-top: 0.7rem;
         }}
 
         .section-header {{
@@ -367,7 +386,7 @@ def load_background_css() -> str:
 
         .performance-grid {{
             display: grid;
-            gap: 0.75rem;
+            gap: 0.6rem;
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }}
 
@@ -377,7 +396,7 @@ def load_background_css() -> str:
             border: 1px solid rgba(255, 255, 255, 0.13);
             border-radius: 8px;
             overflow: hidden;
-            padding: 0.85rem;
+            padding: 0.72rem;
         }}
 
         .performance-top {{
@@ -1026,12 +1045,16 @@ if not player_column or player_column not in data.columns:
 
 teams = normalized_options(data[team_column])
 
-with st.sidebar:
-    st.title("Selecao")
+st.markdown('<div class="filter-heading">Selecao</div>', unsafe_allow_html=True)
+team_filter, position_filter, player_filter = st.columns([1.05, 1.05, 1.35], gap="small")
+
+with team_filter:
     selected_team = st.selectbox("Clube", teams, index=0 if teams else None)
 
-    team_data = data[data[team_column].astype(str).str.strip() == selected_team].copy()
-    filtered_data = team_data
+team_data = data[data[team_column].astype(str).str.strip() == selected_team].copy()
+filtered_data = team_data
+
+with position_filter:
     if position_column and position_column in team_data.columns:
         position_options = ["Todas as posicoes", *normalized_options(team_data[position_column])]
         selected_position = st.selectbox("Posicao principal", position_options, index=0)
@@ -1039,8 +1062,12 @@ with st.sidebar:
             filtered_data = team_data[
                 team_data[position_column].astype(str).str.strip() == selected_position
             ].copy()
+    else:
+        st.selectbox("Posicao principal", ["Todas as posicoes"], index=0, disabled=True)
 
-    players = normalized_options(filtered_data[player_column])
+players = normalized_options(filtered_data[player_column])
+
+with player_filter:
     selected_player = st.selectbox("Atleta", players, index=0 if players else None)
 
 if not selected_team or not selected_player:
