@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import html
 import os
+import unicodedata
 from datetime import date
 from pathlib import Path
 from typing import Iterable
@@ -81,12 +82,17 @@ POSITION_COLUMN_CANDIDATES = [
     "player_position",
 ]
 
+PAGE_PERFIL_INDIVIDUAL = "Perfil Individual"
+PAGE_PERFIL_FUNCAO = "Perfil por Função"
+APP_PAGES = [PAGE_PERFIL_INDIVIDUAL, PAGE_PERFIL_FUNCAO]
+FUNCTION_ORDER = ["Goleiro", "Lateral", "Defensor", "Meia", "Atacante", "Outras funções"]
+
 
 st.set_page_config(
     page_title="Variaveis Tecnicas | Base BR",
     page_icon=str(BACKGROUND_PATH),
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 
@@ -125,6 +131,30 @@ def load_background_css() -> str:
 
         [data-testid="stHeader"] {{
             background: rgba(0, 0, 0, 0);
+        }}
+
+        [data-testid="stSidebar"] {{
+            background: rgba(4, 10, 14, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.12);
+            min-width: 185px;
+            width: 185px;
+        }}
+
+        [data-testid="stSidebar"] [data-testid="stSidebarContent"] {{
+            padding: 1rem 0.65rem;
+        }}
+
+        .nav-title {{
+            color: rgba(34, 197, 94, 0.95);
+            font-size: 0.72rem;
+            font-weight: 900;
+            margin: 0 0 0.55rem 0;
+            text-transform: uppercase;
+        }}
+
+        [data-testid="stSidebar"] label p,
+        [data-testid="stSidebar"] span {{
+            color: #f8fafc;
         }}
 
         .block-container {{
@@ -503,6 +533,76 @@ def load_background_css() -> str:
             border: 1px solid rgba(255, 255, 255, 0.13);
             border-radius: 8px;
             padding: 1.05rem;
+        }}
+
+        .empty-page {{
+            background: linear-gradient(135deg, rgba(8, 16, 22, 0.90), rgba(8, 16, 22, 0.58));
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            margin-top: 0.25rem;
+            padding: 1rem;
+        }}
+
+        .function-section {{
+            background: rgba(7, 13, 18, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 8px;
+            margin-top: 0.75rem;
+            padding: 0.85rem;
+        }}
+
+        .function-title {{
+            color: #f8fafc;
+            font-size: 1.1rem;
+            font-weight: 900;
+            line-height: 1;
+            margin: 0 0 0.3rem 0;
+        }}
+
+        .function-note {{
+            color: rgba(226, 232, 240, 0.62);
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin: 0 0 0.65rem 0;
+        }}
+
+        .selected-cluster {{
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.17), rgba(56, 189, 248, 0.10));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            margin-top: 0.85rem;
+            padding: 0.9rem;
+        }}
+
+        .player-list-title {{
+            color: #f8fafc;
+            font-size: 1rem;
+            font-weight: 900;
+            margin: 0 0 0.55rem 0;
+        }}
+
+        .selected-player-summary {{
+            color: rgba(248, 250, 252, 0.72);
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin: 0.15rem 0 0.6rem 0;
+        }}
+
+        div[data-testid="stButton"] > button {{
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: #f8fafc;
+            font-weight: 800;
+            min-height: 2.45rem;
+            white-space: normal;
+            width: 100%;
+        }}
+
+        div[data-testid="stButton"] > button:hover {{
+            background: rgba(34, 197, 94, 0.18);
+            border-color: rgba(34, 197, 94, 0.45);
+            color: #f8fafc;
         }}
 
         [data-testid="stMetric"] {{
@@ -959,6 +1059,200 @@ def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str
     ]
 
 
+def normalize_search_text(value: object) -> str:
+    if pd.isna(value):
+        return ""
+
+    text = str(value).strip().lower()
+    return "".join(
+        char
+        for char in unicodedata.normalize("NFD", text)
+        if unicodedata.category(char) != "Mn"
+    )
+
+
+def function_label_from_position(value: object) -> str:
+    text = normalize_search_text(value)
+
+    if any(keyword in text for keyword in ("goleiro", "goalkeeper")):
+        return "Goleiro"
+
+    if any(keyword in text for keyword in ("lateral", "ala", "fullback", "wingback")):
+        return "Lateral"
+
+    if any(keyword in text for keyword in ("zagueiro", "defensor", "defesa", "centre-back", "center-back")):
+        return "Defensor"
+
+    if any(keyword in text for keyword in ("meia", "meio", "volante", "midfielder")):
+        return "Meia"
+
+    if any(keyword in text for keyword in ("atacante", "ataque", "ponta", "centroavante", "forward", "winger", "striker")):
+        return "Atacante"
+
+    return "Outras funções"
+
+
+def player_position_text(row: pd.Series, position_column: str | None) -> str:
+    values = [
+        row[position_column]
+        if position_column and position_column in row.index
+        else None,
+        row["posicao_principal_detalhada"] if "posicao_principal_detalhada" in row.index else None,
+        row["posicao_principal"] if "posicao_principal" in row.index else None,
+        row["posicao_jogador"] if "posicao_jogador" in row.index else None,
+        row["posicao"] if "posicao" in row.index else None,
+    ]
+    return first_valid_text(*values, fallback="Funcao nao informada")
+
+
+def prepare_function_profile_data(
+    data: pd.DataFrame,
+    position_column: str | None,
+) -> pd.DataFrame:
+    source = data.copy()
+    source["_position_text"] = source.apply(
+        lambda row: player_position_text(row, position_column),
+        axis=1,
+    )
+    source["_function_label"] = source["_position_text"].map(function_label_from_position)
+    source["_cluster_text"] = (
+        source["cluster"].map(lambda value: clean_text(value, "Sem cluster"))
+        if "cluster" in source.columns
+        else "Sem cluster"
+    )
+    return source
+
+
+def sorted_function_labels(values: Iterable[str]) -> list[str]:
+    order = {name: index for index, name in enumerate(FUNCTION_ORDER)}
+    return sorted(values, key=lambda value: (order.get(value, 999), value))
+
+
+def render_function_profile_page(
+    data: pd.DataFrame,
+    team_column: str,
+    player_column: str,
+    position_column: str | None,
+) -> None:
+    source = prepare_function_profile_data(data, position_column)
+
+    st.markdown(
+        """
+        <section class="team-hero">
+            <div class="team-crest"></div>
+            <div>
+                <div class="eyebrow">Pagina 2</div>
+                <div class="main-title">Perfil por Função</div>
+                <p class="subtitle">Clusters por posicao, atletas e scores tecnicos por categoria</p>
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    available_functions = sorted_function_labels(source["_function_label"].dropna().unique())
+    if not available_functions:
+        st.warning("Nao encontrei posicoes para montar os clusters por funcao.")
+        return
+
+    for function_label in available_functions:
+        function_data = source[source["_function_label"] == function_label].copy()
+        clusters = normalized_options(function_data["_cluster_text"])
+        if not clusters:
+            continue
+
+        st.markdown(
+            f"""
+            <section class="function-section">
+                <div class="function-title">{html.escape(function_label)}</div>
+                <p class="function-note">Selecione um cluster para listar os jogadores dessa funcao.</p>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        button_columns = st.columns(min(4, max(1, len(clusters))), gap="small")
+        for index, cluster in enumerate(clusters):
+            with button_columns[index % len(button_columns)]:
+                if st.button(cluster, key=f"cluster_{function_label}_{index}"):
+                    st.session_state["perfil_funcao_cluster"] = {
+                        "function": function_label,
+                        "cluster": cluster,
+                    }
+                    st.session_state.pop("perfil_funcao_player_index", None)
+
+    selected_cluster = st.session_state.get("perfil_funcao_cluster")
+    if not selected_cluster:
+        st.info("Selecione um cluster para ver os jogadores.")
+        return
+
+    selected_function = selected_cluster["function"]
+    selected_cluster_name = selected_cluster["cluster"]
+    selected_rows = source[
+        (source["_function_label"] == selected_function)
+        & (source["_cluster_text"] == selected_cluster_name)
+    ].copy()
+
+    st.markdown(
+        f"""
+        <section class="selected-cluster">
+            <div class="player-kicker">Cluster selecionado</div>
+            <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
+            <p class="function-note">Clique em um jogador para abrir os scores por categoria.</p>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if selected_rows.empty:
+        st.warning("Nao encontrei jogadores para esse cluster.")
+        return
+
+    player_columns = st.columns(2, gap="small")
+    for button_index, (row_index, row) in enumerate(selected_rows.iterrows()):
+        player_name = row_value(row, player_column)
+        team_name = row_value(row, team_column)
+        with player_columns[button_index % len(player_columns)]:
+            if st.button(f"{player_name} | {team_name}", key=f"player_{selected_function}_{selected_cluster_name}_{row_index}"):
+                st.session_state["perfil_funcao_player_index"] = row_index
+
+    selected_player_index = st.session_state.get("perfil_funcao_player_index")
+    if selected_player_index is None or selected_player_index not in source.index:
+        return
+
+    selected_player = source.loc[selected_player_index]
+    selected_player_name = row_value(selected_player, player_column)
+    selected_team_name = row_value(selected_player, team_column)
+    selected_position = clean_text(selected_player["_position_text"], "Funcao nao informada")
+    selected_player_id = (
+        selected_player["jogador_id"]
+        if "jogador_id" in selected_player.index
+        else None
+    )
+
+    st.markdown(
+        f"""
+        <section>
+            <div class="player-kicker">Jogador selecionado</div>
+            <h1 class="player-name">{html.escape(selected_player_name)}</h1>
+            <p class="selected-player-summary">{html.escape(selected_team_name)} | {html.escape(selected_position)}</p>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if selected_player_id is None:
+        st.warning("Nao encontrei jogador_id para carregar os scores desse atleta.")
+        return
+
+    performance_cards = load_player_performance(selected_player_id)
+    performance_html = render_performance_cards(performance_cards)
+    if performance_html:
+        st.markdown(performance_html, unsafe_allow_html=True)
+    else:
+        st.warning("Nao encontrei scores por categoria para esse jogador.")
+
+
 def render_performance_cards(cards: list[dict]) -> str:
     if not cards:
         return ""
@@ -1016,6 +1310,10 @@ def render_performance_cards(cards: list[dict]) -> str:
 
 st.markdown(load_background_css(), unsafe_allow_html=True)
 
+with st.sidebar:
+    st.markdown('<div class="nav-title">Paginas</div>', unsafe_allow_html=True)
+    selected_page = st.radio("Navegacao", APP_PAGES, label_visibility="collapsed")
+
 try:
     data, table_name = load_table_data()
 except Exception as exc:  # noqa: BLE001
@@ -1041,6 +1339,10 @@ if not team_column or team_column not in data.columns:
 
 if not player_column or player_column not in data.columns:
     st.error("Não encontrei a coluna do jogador. Defina SUPABASE_PLAYER_COLUMN no .env.")
+    st.stop()
+
+if selected_page == PAGE_PERFIL_FUNCAO:
+    render_function_profile_page(data, team_column, player_column, position_column)
     st.stop()
 
 teams = normalized_options(data[team_column])

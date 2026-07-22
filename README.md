@@ -14,17 +14,20 @@ Aplicacao Streamlit para scouting tecnico de jogadores de base. A visualizacao a
 
 ## Fluxo da visualizacao
 
-1. O app carrega as credenciais e configuracoes do `.env`.
-2. Busca a tabela principal de jogadores no Supabase.
-3. Identifica as colunas de time e jogador automaticamente, ou usa `SUPABASE_TEAM_COLUMN` e `SUPABASE_PLAYER_COLUMN`.
-4. Exibe filtros no topo da pagina para selecionar time, posicao principal e jogador.
-5. Renderiza:
+1. A barra lateral pequena permite alternar entre `Perfil Individual` e `Perfil por Funcao`.
+2. A pagina `Perfil Individual` carrega as credenciais e configuracoes do `.env`.
+3. Busca a tabela principal de jogadores no Supabase.
+4. Identifica as colunas de time e jogador automaticamente, ou usa `SUPABASE_TEAM_COLUMN` e `SUPABASE_PLAYER_COLUMN`.
+5. Exibe filtros no topo da pagina para selecionar time, posicao principal e jogador.
+6. Renderiza:
    - hero do time com escudo;
    - nome e posicao do jogador;
    - foto do jogador;
    - cards de bio, como altura, idade, pe preferido, pais, contrato e nascimento;
    - cluster vindo de `bio_jogadores`;
    - cards de variaveis tecnicas agrupadas por tipo de acao em campo.
+
+A pagina `Perfil por Funcao` agrupa os atletas por funcao ampla e cluster. Ao selecionar um cluster, exibe os jogadores e seus clubes; ao selecionar um jogador, carrega os scores por categoria a partir das tabelas tecnicas do Supabase.
 
 ## Variaveis de ambiente
 
