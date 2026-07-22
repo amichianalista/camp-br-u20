@@ -31,6 +31,13 @@ METRICS_TABLES = [
     "fact.metrics_players.laterais",
     "fact.metrics_players.meias",
 ]
+SCORE_TABLES = [
+    "fact.scores_players.atacantes",
+    "fact.scores_players.defensores",
+    "fact.scores_players.goleiros",
+    "fact.scores_players.laterais",
+    "fact.scores_players.meias",
+]
 IMAGE_MIME_TYPES = {
     "jpg": "image/jpeg",
     "jpeg": "image/jpeg",
@@ -544,34 +551,69 @@ def load_background_css() -> str:
         }}
 
         .function-section {{
-            background: rgba(7, 13, 18, 0.72);
-            border: 1px solid rgba(255, 255, 255, 0.13);
+            background:
+                linear-gradient(145deg, rgba(8, 16, 22, 0.92), rgba(7, 13, 18, 0.70));
+            border: 1px solid rgba(255, 255, 255, 0.14);
             border-radius: 8px;
-            margin-top: 0.75rem;
-            padding: 0.85rem;
+            box-shadow: 0 16px 42px rgba(0, 0, 0, 0.26);
+            margin-top: 0.7rem;
+            overflow: hidden;
+            padding: 0.85rem 0.9rem;
+            position: relative;
+        }}
+
+        .function-section::before {{
+            background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
+            content: "";
+            height: 3px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }}
+
+        .function-header {{
+            align-items: center;
+            display: flex;
+            gap: 0.8rem;
+            justify-content: space-between;
+            margin: 0.15rem 0 0.55rem 0;
         }}
 
         .function-title {{
             color: #f8fafc;
-            font-size: 1.1rem;
+            font-size: 1.18rem;
             font-weight: 900;
             line-height: 1;
-            margin: 0 0 0.3rem 0;
+            margin: 0;
+        }}
+
+        .function-count {{
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            color: rgba(248, 250, 252, 0.76);
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 0.28rem 0.56rem;
+            white-space: nowrap;
         }}
 
         .function-note {{
             color: rgba(226, 232, 240, 0.62);
             font-size: 0.78rem;
             font-weight: 700;
-            margin: 0 0 0.65rem 0;
+            margin: 0 0 0.55rem 0;
         }}
 
         .selected-cluster {{
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.17), rgba(56, 189, 248, 0.10));
+            background:
+                linear-gradient(135deg, rgba(34, 197, 94, 0.13), rgba(56, 189, 248, 0.08)),
+                rgba(255, 255, 255, 0.045);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
-            margin-top: 0.85rem;
-            padding: 0.9rem;
+            margin-top: 0.55rem;
+            padding: 0.75rem;
         }}
 
         .player-list-title {{
@@ -586,6 +628,49 @@ def load_background_css() -> str:
             font-size: 0.82rem;
             font-weight: 700;
             margin: 0.15rem 0 0.6rem 0;
+        }}
+
+        .player-score-shell {{
+            background: rgba(2, 6, 23, 0.34);
+            border: 1px solid rgba(255, 255, 255, 0.11);
+            border-radius: 8px;
+            margin-top: 0.65rem;
+            padding: 0.75rem;
+        }}
+
+        .score-grid {{
+            display: grid;
+            gap: 0.62rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }}
+
+        .score-card {{
+            background: rgba(255, 255, 255, 0.065);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 0.75rem;
+        }}
+
+        .score-row {{
+            align-items: center;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: space-between;
+            min-height: 44px;
+        }}
+
+        .score-name {{
+            color: rgba(226, 232, 240, 0.76);
+            font-size: 0.76rem;
+            font-weight: 700;
+            line-height: 1.12;
+        }}
+
+        .score-value {{
+            color: #f8fafc;
+            font-size: 0.96rem;
+            font-weight: 900;
+            white-space: nowrap;
         }}
 
         div[data-testid="stButton"] > button {{
@@ -654,6 +739,10 @@ def load_background_css() -> str:
             }}
 
             .performance-grid {{
+                grid-template-columns: 1fr;
+            }}
+
+            .score-grid {{
                 grid-template-columns: 1fr;
             }}
         }}
@@ -1050,6 +1139,63 @@ def load_player_performance(player_id: object) -> list[dict]:
 
     return sorted(cards, key=lambda item: item["order"])
 
+
+@st.cache_data(ttl=300, show_spinner=False)
+def load_player_score_cards(player_id: object) -> list[dict]:
+    path_id = storage_path_id(player_id)
+    if not path_id:
+        return []
+
+    try:
+        normalized_player_id = int(path_id)
+    except ValueError:
+        normalized_player_id = path_id
+
+    schema = get_score_schema()
+    score_rows = []
+
+    for table in SCORE_TABLES:
+        try:
+            if get_database_url():
+                rows = fetch_rows_from_database(schema, table, "player_id", normalized_player_id)
+            else:
+                rows = (
+                    get_supabase_client()
+                    .schema(schema)
+                    .table(table)
+                    .select("*")
+                    .eq("player_id", normalized_player_id)
+                    .execute()
+                    .data
+                    or []
+                )
+            if rows:
+                score_rows = rows
+                break
+        except Exception:  # noqa: BLE001
+            continue
+
+    grouped: dict[str, list[float]] = {}
+    for row in score_rows:
+        if pd.isna(row.get("valor")):
+            continue
+
+        category = clean_text(row.get("categoria"), "Sem categoria")
+        try:
+            grouped.setdefault(category, []).append(float(row.get("valor")))
+        except (TypeError, ValueError):
+            continue
+
+    return [
+        {
+            "name": category,
+            "value": format_score(float(np.mean(values))),
+        }
+        for category, values in sorted(grouped.items(), key=lambda item: item[0])
+        if values
+    ]
+
+
 def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str]:
     numeric_columns = df.select_dtypes(include=["number"]).columns.tolist()
     return [
@@ -1128,6 +1274,127 @@ def sorted_function_labels(values: Iterable[str]) -> list[str]:
     return sorted(values, key=lambda value: (order.get(value, 999), value))
 
 
+def key_fragment(value: object) -> str:
+    text = normalize_search_text(value)
+    return "".join(char if char.isalnum() else "_" for char in text).strip("_") or "item"
+
+
+def render_score_cards(score_cards: list[dict]) -> str:
+    if not score_cards:
+        return ""
+
+    cards_html = []
+    for card in score_cards:
+        cards_html.append(
+            '<article class="score-card">'
+            '<div class="score-row">'
+            f'<div class="score-name">{html.escape(card["name"])}</div>'
+            f'<div class="score-value">{html.escape(card["value"])}</div>'
+            "</div>"
+            "</article>"
+        )
+
+    return (
+        '<section class="player-score-shell">'
+        '<div class="section-header">'
+        "<div>"
+        '<div class="player-kicker">Scores do jogador</div>'
+        '<h2 class="section-title">Categorias de score</h2>'
+        "</div>"
+        '<p class="section-note">Fonte: fact.scores_players</p>'
+        "</div>"
+        f'<div class="score-grid">{"".join(cards_html)}</div>'
+        "</section>"
+    )
+
+
+def render_selected_cluster_players(
+    source: pd.DataFrame,
+    selected_rows: pd.DataFrame,
+    selected_function: str,
+    selected_cluster_name: str,
+    team_column: str,
+    player_column: str,
+) -> None:
+    st.markdown(
+        f"""
+        <section class="selected-cluster">
+            <div class="player-kicker">Cluster selecionado</div>
+            <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
+            <p class="function-note">Jogadores do cluster. Clique em um atleta para abrir os scores por categoria.</p>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if selected_rows.empty:
+        st.warning("Nao encontrei jogadores para esse cluster.")
+        return
+
+    display_rows = selected_rows.copy()
+    display_rows["_player_name"] = display_rows[player_column].map(lambda value: clean_text(value))
+    display_rows["_team_name"] = display_rows[team_column].map(lambda value: clean_text(value))
+    display_rows = display_rows.sort_values(["_team_name", "_player_name"])
+
+    player_columns = st.columns(2, gap="small")
+    for button_index, (row_index, row) in enumerate(display_rows.iterrows()):
+        player_name = row_value(row, player_column)
+        team_name = row_value(row, team_column)
+        with player_columns[button_index % len(player_columns)]:
+            if st.button(
+                f"{player_name} | {team_name}",
+                key=(
+                    "player_"
+                    f"{key_fragment(selected_function)}_"
+                    f"{key_fragment(selected_cluster_name)}_"
+                    f"{row_index}"
+                ),
+            ):
+                st.session_state["perfil_funcao_player_index"] = row_index
+
+    selected_player_index = st.session_state.get("perfil_funcao_player_index")
+    if selected_player_index is None or selected_player_index not in source.index:
+        return
+
+    selected_player = source.loc[selected_player_index]
+    if (
+        selected_player["_function_label"] != selected_function
+        or selected_player["_cluster_text"] != selected_cluster_name
+    ):
+        return
+
+    selected_player_name = row_value(selected_player, player_column)
+    selected_team_name = row_value(selected_player, team_column)
+    selected_position = clean_text(selected_player["_position_text"], "Funcao nao informada")
+    selected_player_id = (
+        selected_player["jogador_id"]
+        if "jogador_id" in selected_player.index
+        else None
+    )
+
+    st.markdown(
+        f"""
+        <section>
+            <div class="player-kicker">Jogador selecionado</div>
+            <h1 class="player-name">{html.escape(selected_player_name)}</h1>
+            <p class="selected-player-summary">{html.escape(selected_team_name)} | {html.escape(selected_position)}</p>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if selected_player_id is None:
+        st.warning("Nao encontrei jogador_id para carregar os scores desse atleta.")
+        return
+
+    score_cards = load_player_score_cards(selected_player_id)
+    score_html = render_score_cards(score_cards)
+    if score_html:
+        st.markdown(score_html, unsafe_allow_html=True)
+    else:
+        st.warning("Nao encontrei scores em fact.scores_players para esse jogador.")
+
+
 def render_function_profile_page(
     data: pd.DataFrame,
     team_column: str,
@@ -1164,8 +1431,11 @@ def render_function_profile_page(
         st.markdown(
             f"""
             <section class="function-section">
-                <div class="function-title">{html.escape(function_label)}</div>
-                <p class="function-note">Selecione um cluster para listar os jogadores dessa funcao.</p>
+                <div class="function-header">
+                    <div class="function-title">{html.escape(function_label)}</div>
+                    <div class="function-count">{len(function_data)} atletas | {len(clusters)} clusters</div>
+                </div>
+                <p class="function-note">Selecione um cluster para listar os jogadores dessa funcao logo abaixo.</p>
             </section>
             """,
             unsafe_allow_html=True,
@@ -1174,83 +1444,33 @@ def render_function_profile_page(
         button_columns = st.columns(min(4, max(1, len(clusters))), gap="small")
         for index, cluster in enumerate(clusters):
             with button_columns[index % len(button_columns)]:
-                if st.button(cluster, key=f"cluster_{function_label}_{index}"):
+                if st.button(
+                    cluster,
+                    key=f"cluster_{key_fragment(function_label)}_{key_fragment(cluster)}_{index}",
+                ):
                     st.session_state["perfil_funcao_cluster"] = {
                         "function": function_label,
                         "cluster": cluster,
                     }
                     st.session_state.pop("perfil_funcao_player_index", None)
 
-    selected_cluster = st.session_state.get("perfil_funcao_cluster")
-    if not selected_cluster:
+        selected_cluster = st.session_state.get("perfil_funcao_cluster")
+        if selected_cluster and selected_cluster["function"] == function_label:
+            selected_cluster_name = selected_cluster["cluster"]
+            selected_rows = function_data[
+                function_data["_cluster_text"] == selected_cluster_name
+            ].copy()
+            render_selected_cluster_players(
+                source,
+                selected_rows,
+                function_label,
+                selected_cluster_name,
+                team_column,
+                player_column,
+            )
+
+    if not st.session_state.get("perfil_funcao_cluster"):
         st.info("Selecione um cluster para ver os jogadores.")
-        return
-
-    selected_function = selected_cluster["function"]
-    selected_cluster_name = selected_cluster["cluster"]
-    selected_rows = source[
-        (source["_function_label"] == selected_function)
-        & (source["_cluster_text"] == selected_cluster_name)
-    ].copy()
-
-    st.markdown(
-        f"""
-        <section class="selected-cluster">
-            <div class="player-kicker">Cluster selecionado</div>
-            <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
-            <p class="function-note">Clique em um jogador para abrir os scores por categoria.</p>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    if selected_rows.empty:
-        st.warning("Nao encontrei jogadores para esse cluster.")
-        return
-
-    player_columns = st.columns(2, gap="small")
-    for button_index, (row_index, row) in enumerate(selected_rows.iterrows()):
-        player_name = row_value(row, player_column)
-        team_name = row_value(row, team_column)
-        with player_columns[button_index % len(player_columns)]:
-            if st.button(f"{player_name} | {team_name}", key=f"player_{selected_function}_{selected_cluster_name}_{row_index}"):
-                st.session_state["perfil_funcao_player_index"] = row_index
-
-    selected_player_index = st.session_state.get("perfil_funcao_player_index")
-    if selected_player_index is None or selected_player_index not in source.index:
-        return
-
-    selected_player = source.loc[selected_player_index]
-    selected_player_name = row_value(selected_player, player_column)
-    selected_team_name = row_value(selected_player, team_column)
-    selected_position = clean_text(selected_player["_position_text"], "Funcao nao informada")
-    selected_player_id = (
-        selected_player["jogador_id"]
-        if "jogador_id" in selected_player.index
-        else None
-    )
-
-    st.markdown(
-        f"""
-        <section>
-            <div class="player-kicker">Jogador selecionado</div>
-            <h1 class="player-name">{html.escape(selected_player_name)}</h1>
-            <p class="selected-player-summary">{html.escape(selected_team_name)} | {html.escape(selected_position)}</p>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    if selected_player_id is None:
-        st.warning("Nao encontrei jogador_id para carregar os scores desse atleta.")
-        return
-
-    performance_cards = load_player_performance(selected_player_id)
-    performance_html = render_performance_cards(performance_cards)
-    if performance_html:
-        st.markdown(performance_html, unsafe_allow_html=True)
-    else:
-        st.warning("Nao encontrei scores por categoria para esse jogador.")
 
 
 def render_performance_cards(cards: list[dict]) -> str:

@@ -27,7 +27,7 @@ Aplicacao Streamlit para scouting tecnico de jogadores de base. A visualizacao a
    - cluster vindo de `bio_jogadores`;
    - cards de variaveis tecnicas agrupadas por tipo de acao em campo.
 
-A pagina `Perfil por Funcao` agrupa os atletas por funcao ampla e cluster. Ao selecionar um cluster, exibe os jogadores e seus clubes; ao selecionar um jogador, carrega os scores por categoria a partir das tabelas tecnicas do Supabase.
+A pagina `Perfil por Funcao` agrupa os atletas por funcao ampla e cluster. Ao selecionar um cluster, exibe os jogadores e seus clubes logo abaixo da funcao escolhida; ao selecionar um jogador, carrega os scores por categoria a partir das tabelas `fact.scores_players.*` do Supabase e mostra apenas categoria e valor.
 
 ## Variaveis de ambiente
 
@@ -66,6 +66,16 @@ A leitura tecnica vem das tabelas de indicadores por posicao:
 - `fact.metrics_players.meias`
 
 Cada linha de indicador deve trazer `categoria`, `categoria_id`, `percentil`, `metrica_id`, `valor`, `player_id` e `posicao`. O app encontra a tabela que contem o `player_id`, agrupa as linhas por `categoria` e exibe uma leitura relativa do atleta dentro do grupo da mesma funcao. A dimensao `dim.metrics` e usada para nomes, ordem e formatacao.
+
+A pagina `Perfil por Funcao` usa as tabelas de scores por posicao:
+
+- `fact.scores_players.atacantes`
+- `fact.scores_players.defensores`
+- `fact.scores_players.goleiros`
+- `fact.scores_players.laterais`
+- `fact.scores_players.meias`
+
+Cada linha de score deve trazer `player_id`, `posicao`, `categoria`, `coluna_score` e `valor`.
 
 ## Como rodar
 
