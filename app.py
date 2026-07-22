@@ -555,10 +555,10 @@ def load_background_css() -> str:
                 linear-gradient(145deg, rgba(8, 16, 22, 0.92), rgba(7, 13, 18, 0.70));
             border: 1px solid rgba(255, 255, 255, 0.14);
             border-radius: 8px;
-            box-shadow: 0 16px 42px rgba(0, 0, 0, 0.26);
-            margin-top: 0.7rem;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+            margin-top: 0.55rem;
             overflow: hidden;
-            padding: 0.85rem 0.9rem;
+            padding: 0.48rem 0.62rem;
             position: relative;
         }}
 
@@ -577,12 +577,12 @@ def load_background_css() -> str:
             display: flex;
             gap: 0.8rem;
             justify-content: space-between;
-            margin: 0.15rem 0 0.55rem 0;
+            margin: 0.08rem 0 0 0;
         }}
 
         .function-title {{
             color: #f8fafc;
-            font-size: 1.18rem;
+            font-size: 0.98rem;
             font-weight: 900;
             line-height: 1;
             margin: 0;
@@ -593,9 +593,9 @@ def load_background_css() -> str:
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 999px;
             color: rgba(248, 250, 252, 0.76);
-            font-size: 0.72rem;
+            font-size: 0.66rem;
             font-weight: 800;
-            padding: 0.28rem 0.56rem;
+            padding: 0.2rem 0.46rem;
             white-space: nowrap;
         }}
 
@@ -674,20 +674,47 @@ def load_background_css() -> str:
         }}
 
         div[data-testid="stButton"] > button {{
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background:
+                linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(56, 189, 248, 0.13)),
+                rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.32);
             border-radius: 8px;
             color: #f8fafc;
-            font-weight: 800;
-            min-height: 2.45rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 22px rgba(0, 0, 0, 0.16);
+            font-weight: 900;
+            min-height: 2.7rem;
             white-space: normal;
             width: 100%;
         }}
 
         div[data-testid="stButton"] > button:hover {{
-            background: rgba(34, 197, 94, 0.18);
-            border-color: rgba(34, 197, 94, 0.45);
+            background:
+                linear-gradient(135deg, rgba(34, 197, 94, 0.32), rgba(56, 189, 248, 0.18)),
+                rgba(255, 255, 255, 0.10);
+            border-color: rgba(250, 204, 21, 0.58);
             color: #f8fafc;
+            transform: translateY(-1px);
+        }}
+
+        div[data-testid="stButton"] > button[data-testid="baseButton-secondary"] {{
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.13);
+            box-shadow: none;
+            font-weight: 800;
+            min-height: 2.35rem;
+        }}
+
+        div[data-testid="stButton"] > button[data-testid="baseButton-secondary"]:hover {{
+            background: rgba(56, 189, 248, 0.12);
+            border-color: rgba(56, 189, 248, 0.34);
+            transform: none;
+        }}
+
+        div[data-testid="stDialog"] div[role="dialog"] {{
+            background:
+                linear-gradient(145deg, rgba(8, 16, 22, 0.98), rgba(7, 13, 18, 0.94));
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
         }}
 
         [data-testid="stMetric"] {{
@@ -1308,8 +1335,58 @@ def render_score_cards(score_cards: list[dict]) -> str:
     )
 
 
+def render_player_score_content(
+    player_name: str,
+    team_name: str,
+    player_position: str,
+    player_id: object,
+) -> None:
+    st.markdown(
+        f"""
+        <section>
+            <div class="player-kicker">Jogador selecionado</div>
+            <h1 class="player-name">{html.escape(player_name)}</h1>
+            <p class="selected-player-summary">{html.escape(team_name)} | {html.escape(player_position)}</p>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if player_id is None:
+        st.warning("Nao encontrei jogador_id para carregar os scores desse atleta.")
+        return
+
+    score_cards = load_player_score_cards(player_id)
+    score_html = render_score_cards(score_cards)
+    if score_html:
+        st.markdown(score_html, unsafe_allow_html=True)
+    else:
+        st.warning("Nao encontrei scores em fact.scores_players para esse jogador.")
+
+
+if hasattr(st, "dialog"):
+
+    @st.dialog("Scores do jogador", width="large")
+    def render_player_score_dialog(
+        player_name: str,
+        team_name: str,
+        player_position: str,
+        player_id: object,
+    ) -> None:
+        render_player_score_content(player_name, team_name, player_position, player_id)
+
+else:
+
+    def render_player_score_dialog(
+        player_name: str,
+        team_name: str,
+        player_position: str,
+        player_id: object,
+    ) -> None:
+        render_player_score_content(player_name, team_name, player_position, player_id)
+
+
 def render_selected_cluster_players(
-    source: pd.DataFrame,
     selected_rows: pd.DataFrame,
     selected_function: str,
     selected_cluster_name: str,
@@ -1350,49 +1427,14 @@ def render_selected_cluster_players(
                     f"{row_index}"
                 ),
             ):
-                st.session_state["perfil_funcao_player_index"] = row_index
-
-    selected_player_index = st.session_state.get("perfil_funcao_player_index")
-    if selected_player_index is None or selected_player_index not in source.index:
-        return
-
-    selected_player = source.loc[selected_player_index]
-    if (
-        selected_player["_function_label"] != selected_function
-        or selected_player["_cluster_text"] != selected_cluster_name
-    ):
-        return
-
-    selected_player_name = row_value(selected_player, player_column)
-    selected_team_name = row_value(selected_player, team_column)
-    selected_position = clean_text(selected_player["_position_text"], "Funcao nao informada")
-    selected_player_id = (
-        selected_player["jogador_id"]
-        if "jogador_id" in selected_player.index
-        else None
-    )
-
-    st.markdown(
-        f"""
-        <section>
-            <div class="player-kicker">Jogador selecionado</div>
-            <h1 class="player-name">{html.escape(selected_player_name)}</h1>
-            <p class="selected-player-summary">{html.escape(selected_team_name)} | {html.escape(selected_position)}</p>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    if selected_player_id is None:
-        st.warning("Nao encontrei jogador_id para carregar os scores desse atleta.")
-        return
-
-    score_cards = load_player_score_cards(selected_player_id)
-    score_html = render_score_cards(score_cards)
-    if score_html:
-        st.markdown(score_html, unsafe_allow_html=True)
-    else:
-        st.warning("Nao encontrei scores em fact.scores_players para esse jogador.")
+                selected_position = clean_text(row["_position_text"], "Funcao nao informada")
+                selected_player_id = row["jogador_id"] if "jogador_id" in row.index else None
+                render_player_score_dialog(
+                    player_name,
+                    team_name,
+                    selected_position,
+                    selected_player_id,
+                )
 
 
 def render_function_profile_page(
@@ -1435,7 +1477,6 @@ def render_function_profile_page(
                     <div class="function-title">{html.escape(function_label)}</div>
                     <div class="function-count">{len(function_data)} atletas | {len(clusters)} clusters</div>
                 </div>
-                <p class="function-note">Selecione um cluster para listar os jogadores dessa funcao logo abaixo.</p>
             </section>
             """,
             unsafe_allow_html=True,
@@ -1447,12 +1488,12 @@ def render_function_profile_page(
                 if st.button(
                     cluster,
                     key=f"cluster_{key_fragment(function_label)}_{key_fragment(cluster)}_{index}",
+                    type="primary",
                 ):
                     st.session_state["perfil_funcao_cluster"] = {
                         "function": function_label,
                         "cluster": cluster,
                     }
-                    st.session_state.pop("perfil_funcao_player_index", None)
 
         selected_cluster = st.session_state.get("perfil_funcao_cluster")
         if selected_cluster and selected_cluster["function"] == function_label:
@@ -1461,7 +1502,6 @@ def render_function_profile_page(
                 function_data["_cluster_text"] == selected_cluster_name
             ].copy()
             render_selected_cluster_players(
-                source,
                 selected_rows,
                 function_label,
                 selected_cluster_name,
