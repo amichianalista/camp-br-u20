@@ -651,6 +651,10 @@ def load_background_css() -> str:
             color: #f8fafc !important;
         }}
 
+        .cluster-player-row {{
+            margin-top: -0.42rem;
+        }}
+
         .player-list-title {{
             color: #f8fafc;
             font-size: 0.94rem;
@@ -731,6 +735,46 @@ def load_background_css() -> str:
             align-content: start;
             display: grid;
             gap: 0.56rem;
+        }}
+
+        .dialog-quick-facts {{
+            display: grid;
+            gap: 0.42rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 0.4rem;
+            max-width: 620px;
+        }}
+
+        .dialog-cluster-highlight {{
+            background:
+                linear-gradient(135deg, rgba(34, 197, 94, 0.20), rgba(56, 189, 248, 0.11)),
+                rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(34, 197, 94, 0.26);
+            border-radius: 8px;
+            margin-top: 0.35rem;
+            padding: 0.58rem 0.68rem;
+        }}
+
+        .dialog-cluster-label {{
+            color: rgba(34, 197, 94, 0.96);
+            font-size: 0.66rem;
+            font-weight: 900;
+            margin-bottom: 0.18rem;
+            text-transform: uppercase;
+        }}
+
+        .dialog-cluster-value {{
+            color: #f8fafc;
+            font-size: clamp(1.25rem, 2vw, 1.9rem);
+            font-weight: 900;
+            line-height: 1;
+        }}
+
+        .dialog-raw-title {{
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
         }}
 
         .dialog-bio-grid {{
@@ -932,6 +976,10 @@ def load_background_css() -> str:
 
             .dialog-bio-grid {{
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }}
+
+            .dialog-quick-facts {{
+                grid-template-columns: 1fr;
             }}
         }}
     </style>
@@ -1384,6 +1432,83 @@ def load_player_score_cards(player_id: object) -> list[dict]:
     ]
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def load_player_raw_metrics(player_id: object) -> list[dict]:
+    path_id = storage_path_id(player_id)
+    if not path_id:
+        return []
+
+    try:
+        normalized_player_id = int(path_id)
+    except ValueError:
+        normalized_player_id = path_id
+
+    schema = get_score_schema()
+    metric_rows = []
+
+    for table in METRICS_TABLES:
+        try:
+            if get_database_url():
+                rows = fetch_rows_from_database(schema, table, "player_id", normalized_player_id)
+            else:
+                rows = (
+                    get_supabase_client()
+                    .schema(schema)
+                    .table(table)
+                    .select("*")
+                    .eq("player_id", normalized_player_id)
+                    .execute()
+                    .data
+                    or []
+                )
+            if rows:
+                metric_rows = rows
+                break
+        except Exception:  # noqa: BLE001
+            continue
+
+    try:
+        metric_defs = (
+            fetch_rows_from_database(schema, "dim.metrics")
+            if get_database_url()
+            else (
+                get_supabase_client()
+                .schema(schema)
+                .table("dim.metrics")
+                .select("metrica_id,nome_metrica,ordem_exibicao,eh_percentual")
+                .execute()
+                .data
+                or []
+            )
+        )
+    except Exception:  # noqa: BLE001
+        metric_defs = []
+
+    metric_defs_by_id = {row["metrica_id"]: row for row in metric_defs if "metrica_id" in row}
+    metrics = []
+    for index, row in enumerate(metric_rows):
+        if pd.isna(row.get("valor")):
+            continue
+
+        definition = metric_defs_by_id.get(row.get("metrica_id"), {})
+        metric_name = (
+            definition.get("nome_metrica")
+            or row.get("coluna_metrica")
+            or row.get("metrica_id")
+            or row.get("categoria")
+            or "Metrica"
+        )
+        metrics.append(
+            {
+                "name": humanize_key(str(metric_name)),
+                "value": format_metric_value(row.get("valor"), definition.get("eh_percentual")),
+                "order": definition.get("ordem_exibicao") or row.get("categoria_id") or index,
+            }
+        )
+
+    return sorted(metrics, key=lambda item: item["order"])[:12]
+
+
 def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str]:
     numeric_columns = df.select_dtypes(include=["number"]).columns.tolist()
     return [
@@ -1502,6 +1627,10 @@ def render_player_score_content(
     player_name = clean_text(player_info.get("name"), "Jogador")
     team_name = clean_text(player_info.get("team"), "Time nao informado")
     player_position = clean_text(player_info.get("position"), "Funcao nao informada")
+    cluster_value = clean_text(player_info.get("cluster"), "-")
+    height_value = clean_text(player_info.get("height"), "-")
+    age_value = clean_text(player_info.get("age"), "-")
+    foot_value = clean_text(player_info.get("foot"), "-")
     player_id = player_info.get("player_id")
     player_photo, player_photo_mime = load_player_photo(player_id)
     player_photo_uri = image_data_uri(player_photo, player_photo_mime)
@@ -1510,24 +1639,34 @@ def render_player_score_content(
         if player_photo_uri
         else '<div class="player-photo-placeholder">Foto indisponivel</div>'
     )
-    bio_items = [
-        ("Time", team_name),
-        ("Funcao", player_position),
-        ("Altura", player_info.get("height", "-")),
-        ("Idade", player_info.get("age", "-")),
-        ("Pe preferido", player_info.get("foot", "-")),
-        ("Pais", player_info.get("country", "-")),
-        ("Contrato", player_info.get("contract", "-")),
-        ("Nascimento", player_info.get("birth_date", "-")),
-        ("Cluster", player_info.get("cluster", "-")),
+    quick_facts = [
+        ("Idade", age_value),
+        ("Altura", height_value),
+        ("Pe preferido", foot_value),
     ]
-    bio_html = "".join(
+    quick_facts_html = "".join(
         '<div class="dialog-bio-card">'
         f'<div class="dialog-bio-label">{html.escape(label)}</div>'
-        f'<div class="dialog-bio-value">{html.escape(clean_text(value, "-"))}</div>'
+        f'<div class="dialog-bio-value">{html.escape(value)}</div>'
         "</div>"
-        for label, value in bio_items
+        for label, value in quick_facts
     )
+
+    raw_metrics = load_player_raw_metrics(player_id)
+    raw_metrics_html = "".join(
+        '<div class="dialog-bio-card">'
+        f'<div class="dialog-bio-label">{html.escape(metric["name"])}</div>'
+        f'<div class="dialog-bio-value">{html.escape(metric["value"])}</div>'
+        "</div>"
+        for metric in raw_metrics
+    )
+    if not raw_metrics_html:
+        raw_metrics_html = (
+            '<div class="dialog-bio-card">'
+            '<div class="dialog-bio-label">Metricas brutas</div>'
+            '<div class="dialog-bio-value">-</div>'
+            "</div>"
+        )
 
     st.markdown(
         f"""
@@ -1537,6 +1676,11 @@ def render_player_score_content(
                 <div class="player-kicker">Jogador selecionado</div>
                 <h1 class="player-name">{html.escape(player_name)}</h1>
                 <p class="selected-player-summary">{html.escape(team_name)} | {html.escape(player_position)}</p>
+                <div class="dialog-quick-facts">{quick_facts_html}</div>
+                <div class="dialog-cluster-highlight">
+                    <div class="dialog-cluster-label">Cluster</div>
+                    <div class="dialog-cluster-value">{html.escape(cluster_value)}</div>
+                </div>
             </div>
         </section>
         """,
@@ -1557,7 +1701,11 @@ def render_player_score_content(
     st.markdown(
         f"""
         <section class="dialog-bio-shell">
-            <div class="dialog-bio-grid">{bio_html}</div>
+            <div class="dialog-raw-title">
+                <div class="player-kicker">Metricas brutas</div>
+                <p class="section-note">Fonte: fact.metrics_players</p>
+            </div>
+            <div class="dialog-bio-grid">{raw_metrics_html}</div>
         </section>
         """,
         unsafe_allow_html=True,
@@ -1607,6 +1755,7 @@ def render_selected_cluster_players(
     display_rows["_team_name"] = display_rows[team_column].map(lambda value: clean_text(value))
     display_rows = display_rows.sort_values(["_team_name", "_player_name"])
 
+    st.markdown('<div class="cluster-player-row">', unsafe_allow_html=True)
     player_columns = st.columns(2, gap="small")
     for button_index, (row_index, row) in enumerate(display_rows.iterrows()):
         player_name = row_value(row, player_column)
@@ -1637,6 +1786,7 @@ def render_selected_cluster_players(
                     "cluster": clean_text(row["_cluster_text"], "-"),
                 }
                 render_player_score_dialog(player_info)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_function_profile_page(
