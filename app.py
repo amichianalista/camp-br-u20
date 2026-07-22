@@ -627,30 +627,6 @@ def load_background_css() -> str:
             position: relative;
         }}
 
-        .cluster-close {{
-            align-items: center;
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 999px;
-            color: rgba(248, 250, 252, 0.72) !important;
-            display: flex;
-            font-size: 0.72rem;
-            font-weight: 900;
-            height: 1.35rem;
-            justify-content: center;
-            position: absolute;
-            right: 0.52rem;
-            text-decoration: none;
-            top: 0.52rem;
-            width: 1.35rem;
-        }}
-
-        .cluster-close:hover {{
-            background: rgba(248, 113, 113, 0.16);
-            border-color: rgba(248, 113, 113, 0.34);
-            color: #f8fafc !important;
-        }}
-
         .cluster-player-row {{
             margin-top: -0.42rem;
         }}
@@ -888,6 +864,24 @@ def load_background_css() -> str:
             font-size: 0.78rem;
             min-height: 2rem;
             padding: 0;
+        }}
+
+        div[data-testid="stButton"] > button[title="Fechar cluster"] {{
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.16);
+            border-radius: 999px;
+            box-shadow: none;
+            color: rgba(248, 250, 252, 0.72);
+            font-size: 0.72rem;
+            min-height: 1.55rem;
+            padding: 0;
+            width: 1.55rem;
+        }}
+
+        div[data-testid="stButton"] > button[title="Fechar cluster"]:hover {{
+            background: rgba(248, 113, 113, 0.16);
+            border-color: rgba(248, 113, 113, 0.34);
+            color: #f8fafc;
         }}
 
         div[data-testid="stDialog"],
@@ -1735,16 +1729,21 @@ def render_selected_cluster_players(
     team_column: str,
     player_column: str,
 ) -> None:
-    st.markdown(
-        f"""
-        <section class="selected-cluster">
-            <a class="cluster-close" href="?clear_cluster=1" target="_self" title="Fechar">X</a>
-            <div class="player-kicker">Cluster selecionado</div>
-            <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
+    title_column, close_column = st.columns([0.96, 0.04], gap="small")
+    with title_column:
+        st.markdown(
+            f"""
+            <section class="selected-cluster">
+                <div class="player-kicker">Cluster selecionado</div>
+                <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
+    with close_column:
+        if st.button("X", key=f"close_cluster_{key_fragment(selected_function)}", help="Fechar cluster"):
+            st.session_state.pop("perfil_funcao_cluster", None)
+            return
 
     if selected_rows.empty:
         st.warning("Nao encontrei jogadores para esse cluster.")
@@ -1795,11 +1794,6 @@ def render_function_profile_page(
     player_column: str,
     position_column: str | None,
 ) -> None:
-    if st.query_params.get("clear_cluster") == "1":
-        st.session_state.pop("perfil_funcao_cluster", None)
-        st.query_params.clear()
-        st.rerun()
-
     source = prepare_function_profile_data(data, position_column)
 
     st.markdown(
