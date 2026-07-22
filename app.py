@@ -557,9 +557,18 @@ def load_background_css() -> str:
             border-radius: 8px;
             box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
             margin-top: 0.55rem;
+            margin-bottom: 0.08rem;
             overflow: hidden;
             padding: 0.48rem 0.62rem;
             position: relative;
+        }}
+
+        .cluster-button-row {{
+            margin-top: -0.42rem;
+        }}
+
+        .cluster-button-row div[data-testid="column"] {{
+            padding-top: 0;
         }}
 
         .function-section::before {{
@@ -612,15 +621,16 @@ def load_background_css() -> str:
                 rgba(255, 255, 255, 0.045);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
-            margin-top: 0.55rem;
-            padding: 0.75rem;
+            margin-top: 0.1rem;
+            margin-bottom: 0.05rem;
+            padding: 0.48rem 0.58rem;
         }}
 
         .player-list-title {{
             color: #f8fafc;
-            font-size: 1rem;
+            font-size: 0.94rem;
             font-weight: 900;
-            margin: 0 0 0.55rem 0;
+            margin: 0.12rem 0 0 0;
         }}
 
         .selected-player-summary {{
@@ -636,6 +646,73 @@ def load_background_css() -> str:
             border-radius: 8px;
             margin-top: 0.65rem;
             padding: 0.75rem;
+        }}
+
+        .dialog-player-card {{
+            background:
+                linear-gradient(135deg, rgba(8, 16, 22, 0.96), rgba(7, 13, 18, 0.78));
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 8px;
+            display: grid;
+            gap: 0.85rem;
+            grid-template-columns: 150px minmax(0, 1fr);
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            padding: 0.75rem;
+        }}
+
+        .dialog-player-photo {{
+            align-items: flex-end;
+            background: rgba(2, 6, 23, 0.56);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            display: flex;
+            height: 176px;
+            justify-content: center;
+            overflow: hidden;
+        }}
+
+        .dialog-player-photo img {{
+            display: block;
+            height: 176px;
+            object-fit: cover;
+            object-position: center top;
+            width: 100%;
+        }}
+
+        .dialog-player-meta {{
+            align-content: start;
+            display: grid;
+            gap: 0.56rem;
+        }}
+
+        .dialog-bio-grid {{
+            display: grid;
+            gap: 0.48rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }}
+
+        .dialog-bio-card {{
+            background: rgba(255, 255, 255, 0.065);
+            border: 1px solid rgba(255, 255, 255, 0.11);
+            border-radius: 8px;
+            min-height: 58px;
+            padding: 0.48rem 0.56rem;
+        }}
+
+        .dialog-bio-label {{
+            color: rgba(203, 213, 225, 0.72);
+            font-size: 0.62rem;
+            font-weight: 800;
+            margin-bottom: 0.2rem;
+            text-transform: uppercase;
+        }}
+
+        .dialog-bio-value {{
+            color: #f8fafc;
+            font-size: 0.9rem;
+            font-weight: 900;
+            line-height: 1.08;
         }}
 
         .score-grid {{
@@ -710,11 +787,37 @@ def load_background_css() -> str:
             transform: none;
         }}
 
-        div[data-testid="stDialog"] div[role="dialog"] {{
+        div[data-testid="stButton"] > button[title="X"] {{
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.16);
+            box-shadow: none;
+            font-size: 0.78rem;
+            min-height: 2rem;
+            padding: 0;
+        }}
+
+        div[data-testid="stDialog"],
+        div[data-testid="stDialog"] div[role="dialog"],
+        div[role="dialog"] {{
             background:
-                linear-gradient(145deg, rgba(8, 16, 22, 0.98), rgba(7, 13, 18, 0.94));
+                linear-gradient(145deg, rgba(8, 16, 22, 0.98), rgba(7, 13, 18, 0.94)) !important;
             border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 8px;
+        }}
+
+        div[data-testid="stDialog"] h1,
+        div[data-testid="stDialog"] h2,
+        div[data-testid="stDialog"] h3,
+        div[data-testid="stDialog"] p,
+        div[data-testid="stDialog"] span,
+        div[data-testid="stDialog"] div,
+        div[role="dialog"] h1,
+        div[role="dialog"] h2,
+        div[role="dialog"] h3,
+        div[role="dialog"] p,
+        div[role="dialog"] span,
+        div[role="dialog"] div {{
+            color: #f8fafc !important;
         }}
 
         [data-testid="stMetric"] {{
@@ -771,6 +874,14 @@ def load_background_css() -> str:
 
             .score-grid {{
                 grid-template-columns: 1fr;
+            }}
+
+            .dialog-player-card {{
+                grid-template-columns: 1fr;
+            }}
+
+            .dialog-bio-grid {{
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }}
         }}
     </style>
@@ -1336,17 +1447,50 @@ def render_score_cards(score_cards: list[dict]) -> str:
 
 
 def render_player_score_content(
-    player_name: str,
-    team_name: str,
-    player_position: str,
-    player_id: object,
+    player_info: dict,
 ) -> None:
+    player_name = clean_text(player_info.get("name"), "Jogador")
+    team_name = clean_text(player_info.get("team"), "Time nao informado")
+    player_position = clean_text(player_info.get("position"), "Funcao nao informada")
+    player_id = player_info.get("player_id")
+    player_photo, player_photo_mime = load_player_photo(player_id)
+    player_photo_uri = image_data_uri(player_photo, player_photo_mime)
+    player_photo_html = (
+        f'<img src="{player_photo_uri}" alt="Foto {html.escape(player_name)}">'
+        if player_photo_uri
+        else '<div class="player-photo-placeholder">Foto indisponivel</div>'
+    )
+    bio_items = [
+        ("Time", team_name),
+        ("Funcao", player_position),
+        ("Altura", player_info.get("height", "-")),
+        ("Idade", player_info.get("age", "-")),
+        ("Pe preferido", player_info.get("foot", "-")),
+        ("Pais", player_info.get("country", "-")),
+        ("Contrato", player_info.get("contract", "-")),
+        ("Nascimento", player_info.get("birth_date", "-")),
+        ("Cluster", player_info.get("cluster", "-")),
+    ]
+    bio_html = "".join(
+        '<div class="dialog-bio-card">'
+        f'<div class="dialog-bio-label">{html.escape(label)}</div>'
+        f'<div class="dialog-bio-value">{html.escape(clean_text(value, "-"))}</div>'
+        "</div>"
+        for label, value in bio_items
+    )
+
     st.markdown(
         f"""
-        <section>
-            <div class="player-kicker">Jogador selecionado</div>
-            <h1 class="player-name">{html.escape(player_name)}</h1>
-            <p class="selected-player-summary">{html.escape(team_name)} | {html.escape(player_position)}</p>
+        <section class="dialog-player-card">
+            <div class="dialog-player-photo">{player_photo_html}</div>
+            <div class="dialog-player-meta">
+                <div>
+                    <div class="player-kicker">Jogador selecionado</div>
+                    <h1 class="player-name">{html.escape(player_name)}</h1>
+                    <p class="selected-player-summary">{html.escape(team_name)} | {html.escape(player_position)}</p>
+                </div>
+                <div class="dialog-bio-grid">{bio_html}</div>
+            </div>
         </section>
         """,
         unsafe_allow_html=True,
@@ -1368,22 +1512,16 @@ if hasattr(st, "dialog"):
 
     @st.dialog("Scores do jogador", width="large")
     def render_player_score_dialog(
-        player_name: str,
-        team_name: str,
-        player_position: str,
-        player_id: object,
+        player_info: dict,
     ) -> None:
-        render_player_score_content(player_name, team_name, player_position, player_id)
+        render_player_score_content(player_info)
 
 else:
 
     def render_player_score_dialog(
-        player_name: str,
-        team_name: str,
-        player_position: str,
-        player_id: object,
+        player_info: dict,
     ) -> None:
-        render_player_score_content(player_name, team_name, player_position, player_id)
+        render_player_score_content(player_info)
 
 
 def render_selected_cluster_players(
@@ -1393,16 +1531,22 @@ def render_selected_cluster_players(
     team_column: str,
     player_column: str,
 ) -> None:
-    st.markdown(
-        f"""
-        <section class="selected-cluster">
-            <div class="player-kicker">Cluster selecionado</div>
-            <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
-            <p class="function-note">Jogadores do cluster. Clique em um atleta para abrir os scores por categoria.</p>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
+    close_column, title_column = st.columns([0.06, 0.94], gap="small")
+    with close_column:
+        if st.button("X", key=f"close_cluster_{key_fragment(selected_function)}"):
+            st.session_state.pop("perfil_funcao_cluster", None)
+            st.rerun()
+
+    with title_column:
+        st.markdown(
+            f"""
+            <section class="selected-cluster">
+                <div class="player-kicker">Cluster selecionado</div>
+                <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
 
     if selected_rows.empty:
         st.warning("Nao encontrei jogadores para esse cluster.")
@@ -1429,12 +1573,20 @@ def render_selected_cluster_players(
             ):
                 selected_position = clean_text(row["_position_text"], "Funcao nao informada")
                 selected_player_id = row["jogador_id"] if "jogador_id" in row.index else None
-                render_player_score_dialog(
-                    player_name,
-                    team_name,
-                    selected_position,
-                    selected_player_id,
-                )
+                player_info = {
+                    "name": player_name,
+                    "team": team_name,
+                    "position": selected_position,
+                    "player_id": selected_player_id,
+                    "height": format_height(row["altura_cm"]) if "altura_cm" in row.index else "-",
+                    "age": calculate_age(row["data_nascimento"]) if "data_nascimento" in row.index else "-",
+                    "foot": row_value(row, "pe_preferido"),
+                    "country": row_value(row, "pais"),
+                    "contract": format_date(row["contrato_ate"]) if "contrato_ate" in row.index else "-",
+                    "birth_date": format_date(row["data_nascimento"]) if "data_nascimento" in row.index else "-",
+                    "cluster": clean_text(row["_cluster_text"], "-"),
+                }
+                render_player_score_dialog(player_info)
 
 
 def render_function_profile_page(
@@ -1482,6 +1634,7 @@ def render_function_profile_page(
             unsafe_allow_html=True,
         )
 
+        st.markdown('<div class="cluster-button-row">', unsafe_allow_html=True)
         button_columns = st.columns(min(4, max(1, len(clusters))), gap="small")
         for index, cluster in enumerate(clusters):
             with button_columns[index % len(button_columns)]:
@@ -1494,6 +1647,7 @@ def render_function_profile_page(
                         "function": function_label,
                         "cluster": cluster,
                     }
+        st.markdown("</div>", unsafe_allow_html=True)
 
         selected_cluster = st.session_state.get("perfil_funcao_cluster")
         if selected_cluster and selected_cluster["function"] == function_label:
