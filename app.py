@@ -624,6 +624,31 @@ def load_background_css() -> str:
             margin-top: 0.1rem;
             margin-bottom: 0.05rem;
             padding: 0.48rem 0.58rem;
+            position: relative;
+        }}
+
+        .cluster-close {{
+            align-items: center;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+            color: rgba(248, 250, 252, 0.72) !important;
+            display: flex;
+            font-size: 0.72rem;
+            font-weight: 900;
+            height: 1.35rem;
+            justify-content: center;
+            position: absolute;
+            right: 0.52rem;
+            text-decoration: none;
+            top: 0.52rem;
+            width: 1.35rem;
+        }}
+
+        .cluster-close:hover {{
+            background: rgba(248, 113, 113, 0.16);
+            border-color: rgba(248, 113, 113, 0.34);
+            color: #f8fafc !important;
         }}
 
         .player-list-title {{
@@ -641,11 +666,25 @@ def load_background_css() -> str:
         }}
 
         .player-score-shell {{
-            background: rgba(2, 6, 23, 0.34);
-            border: 1px solid rgba(255, 255, 255, 0.11);
+            background:
+                linear-gradient(135deg, rgba(8, 16, 22, 0.96), rgba(7, 13, 18, 0.78));
+            border: 1px solid rgba(34, 197, 94, 0.22);
             border-radius: 8px;
-            margin-top: 0.65rem;
-            padding: 0.75rem;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+            margin-bottom: 0.7rem;
+            margin-top: 0;
+            padding: 0.88rem;
+            position: relative;
+        }}
+
+        .player-score-shell::before {{
+            background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
+            content: "";
+            height: 3px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
         }}
 
         .dialog-player-card {{
@@ -656,9 +695,17 @@ def load_background_css() -> str:
             display: grid;
             gap: 0.85rem;
             grid-template-columns: 150px minmax(0, 1fr);
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.65rem;
             overflow: hidden;
-            padding: 0.75rem;
+            padding: 0.68rem;
+        }}
+
+        .dialog-bio-shell {{
+            background:
+                linear-gradient(135deg, rgba(8, 16, 22, 0.90), rgba(7, 13, 18, 0.68));
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 8px;
+            padding: 0.62rem;
         }}
 
         .dialog-player-photo {{
@@ -688,44 +735,47 @@ def load_background_css() -> str:
 
         .dialog-bio-grid {{
             display: grid;
-            gap: 0.48rem;
+            gap: 0.38rem;
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }}
 
         .dialog-bio-card {{
-            background: rgba(255, 255, 255, 0.065);
-            border: 1px solid rgba(255, 255, 255, 0.11);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
-            min-height: 58px;
-            padding: 0.48rem 0.56rem;
+            min-height: 48px;
+            padding: 0.38rem 0.46rem;
         }}
 
         .dialog-bio-label {{
             color: rgba(203, 213, 225, 0.72);
-            font-size: 0.62rem;
+            font-size: 0.58rem;
             font-weight: 800;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.16rem;
             text-transform: uppercase;
         }}
 
         .dialog-bio-value {{
             color: #f8fafc;
-            font-size: 0.9rem;
+            font-size: 0.82rem;
             font-weight: 900;
             line-height: 1.08;
         }}
 
         .score-grid {{
             display: grid;
-            gap: 0.62rem;
+            gap: 0.68rem;
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }}
 
         .score-card {{
-            background: rgba(255, 255, 255, 0.065);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background:
+                linear-gradient(135deg, rgba(34, 197, 94, 0.16), rgba(56, 189, 248, 0.08)),
+                rgba(255, 255, 255, 0.065);
+            border: 1px solid rgba(34, 197, 94, 0.24);
             border-radius: 8px;
-            padding: 0.75rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+            padding: 0.78rem 0.86rem;
         }}
 
         .score-row {{
@@ -733,19 +783,19 @@ def load_background_css() -> str:
             display: flex;
             gap: 0.75rem;
             justify-content: space-between;
-            min-height: 44px;
+            min-height: 50px;
         }}
 
         .score-name {{
-            color: rgba(226, 232, 240, 0.76);
-            font-size: 0.76rem;
-            font-weight: 700;
+            color: rgba(226, 232, 240, 0.84);
+            font-size: 0.82rem;
+            font-weight: 800;
             line-height: 1.12;
         }}
 
         .score-value {{
             color: #f8fafc;
-            font-size: 0.96rem;
+            font-size: 1.26rem;
             font-weight: 900;
             white-space: nowrap;
         }}
@@ -1484,12 +1534,9 @@ def render_player_score_content(
         <section class="dialog-player-card">
             <div class="dialog-player-photo">{player_photo_html}</div>
             <div class="dialog-player-meta">
-                <div>
-                    <div class="player-kicker">Jogador selecionado</div>
-                    <h1 class="player-name">{html.escape(player_name)}</h1>
-                    <p class="selected-player-summary">{html.escape(team_name)} | {html.escape(player_position)}</p>
-                </div>
-                <div class="dialog-bio-grid">{bio_html}</div>
+                <div class="player-kicker">Jogador selecionado</div>
+                <h1 class="player-name">{html.escape(player_name)}</h1>
+                <p class="selected-player-summary">{html.escape(team_name)} | {html.escape(player_position)}</p>
             </div>
         </section>
         """,
@@ -1506,6 +1553,15 @@ def render_player_score_content(
         st.markdown(score_html, unsafe_allow_html=True)
     else:
         st.warning("Nao encontrei scores em fact.scores_players para esse jogador.")
+
+    st.markdown(
+        f"""
+        <section class="dialog-bio-shell">
+            <div class="dialog-bio-grid">{bio_html}</div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 if hasattr(st, "dialog"):
@@ -1531,22 +1587,16 @@ def render_selected_cluster_players(
     team_column: str,
     player_column: str,
 ) -> None:
-    close_column, title_column = st.columns([0.06, 0.94], gap="small")
-    with close_column:
-        if st.button("X", key=f"close_cluster_{key_fragment(selected_function)}"):
-            st.session_state.pop("perfil_funcao_cluster", None)
-            st.rerun()
-
-    with title_column:
-        st.markdown(
-            f"""
-            <section class="selected-cluster">
-                <div class="player-kicker">Cluster selecionado</div>
-                <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
-            </section>
-            """,
-            unsafe_allow_html=True,
-        )
+    st.markdown(
+        f"""
+        <section class="selected-cluster">
+            <a class="cluster-close" href="?clear_cluster=1" target="_self" title="Fechar">X</a>
+            <div class="player-kicker">Cluster selecionado</div>
+            <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
 
     if selected_rows.empty:
         st.warning("Nao encontrei jogadores para esse cluster.")
@@ -1595,6 +1645,11 @@ def render_function_profile_page(
     player_column: str,
     position_column: str | None,
 ) -> None:
+    if st.query_params.get("clear_cluster") == "1":
+        st.session_state.pop("perfil_funcao_cluster", None)
+        st.query_params.clear()
+        st.rerun()
+
     source = prepare_function_profile_data(data, position_column)
 
     st.markdown(
