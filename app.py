@@ -24,13 +24,6 @@ TEAM_LOGO_BUCKET = "jogadores-br-sub-20"
 TEAM_LOGO_FOLDER = "teams"
 PLAYER_IMAGE_FOLDER = "players"
 SCORE_SCHEMA = "jogadores-br-sub-20"
-METRICS_TABLES = [
-    "fact.metrics_players.atacantes",
-    "fact.metrics_players.defensores",
-    "fact.metrics_players.goleiros",
-    "fact.metrics_players.laterais",
-    "fact.metrics_players.meias",
-]
 SCORE_TABLES = [
     "fact.scores_players.atacantes",
     "fact.scores_players.defensores",
@@ -38,6 +31,17 @@ SCORE_TABLES = [
     "fact.scores_players.laterais",
     "fact.scores_players.meias",
 ]
+SCORE_ID_COLUMNS = ("jogador_id", "player_id")
+SCORE_VALUE_PREFIX = "pontuacao_"
+SCORE_PERCENTILE_PREFIX = "percentil_"
+SCORE_METADATA_COLUMNS = {
+    "jogador_id",
+    "player_id",
+    "posicao",
+    "minutos_jogados",
+    "persona",
+    "ranking_percentil",
+}
 IMAGE_MIME_TYPES = {
     "jpg": "image/jpeg",
     "jpeg": "image/jpeg",
@@ -46,6 +50,7 @@ IMAGE_MIME_TYPES = {
 }
 
 TABLE_CANDIDATES = [
+    "player_bio",
     "bio_jogadores",
     "jogadores_visualizacao",
     "visualizacao_jogadores",
@@ -1134,6 +1139,11 @@ def format_score(value: object) -> str:
     return f"{number:.1f}".replace(".", ",")
 
 
+def format_percentile(value: object) -> str:
+    formatted = format_score(value)
+    return "-" if formatted == "-" else f"{formatted}%"
+
+
 def format_metric_value(value: object, is_percentual: object = False) -> str:
     if pd.isna(value):
         return "-"
@@ -1152,6 +1162,10 @@ def format_metric_value(value: object, is_percentual: object = False) -> str:
 
 def humanize_key(value: str) -> str:
     return clean_text(value)
+
+
+def score_category_name(column_suffix: str) -> str:
+    return humanize_key(column_suffix)
 
 
 def calculate_age(value: object) -> str:
@@ -1252,7 +1266,7 @@ def load_player_photo(player_id: object) -> tuple[bytes | None, str]:
 
 
 @st.cache_data(ttl=300, show_spinner=False)
-def load_player_performance(player_id: object) -> list[dict]:
+def load_player_score_rows(player_id: object) -> list[dict]:
     path_id = storage_path_id(player_id)
     if not path_id:
         return []
@@ -1263,148 +1277,61 @@ def load_player_performance(player_id: object) -> list[dict]:
         normalized_player_id = path_id
 
     schema = get_score_schema()
-    metric_rows = []
-
-    for table in METRICS_TABLES:
-        try:
-            if get_database_url():
-                rows = fetch_rows_from_database(schema, table, "player_id", normalized_player_id)
-            else:
-                rows = (
-                    get_supabase_client()
-                    .schema(schema)
-                    .table(table)
-                    .select("*")
-                    .eq("player_id", normalized_player_id)
-                    .execute()
-                    .data
-                    or []
-                )
-            if rows:
-                metric_rows = rows
-                break
-        except Exception:  # noqa: BLE001
-            continue
-
-    if not metric_rows:
-        return []
-
-    try:
-        metric_defs = (
-            fetch_rows_from_database(schema, "dim.metrics")
-            if get_database_url()
-            else (
-                get_supabase_client()
-                .schema(schema)
-                .table("dim.metrics")
-                .select("metrica_id,nome_metrica,categoria_id,chave_categoria,nome_categoria,ordem_exibicao,tipo_valor,eh_percentual")
-                .execute()
-                .data
-                or []
-            )
-        )
-    except Exception:  # noqa: BLE001
-        metric_defs = []
-
-    metric_defs_by_id = {row["metrica_id"]: row for row in metric_defs}
-    grouped: dict[str, dict] = {}
-
-    for metric in metric_rows:
-        if pd.isna(metric.get("valor")):
-            continue
-
-        definition = metric_defs_by_id.get(metric.get("metrica_id"), {})
-        category_key = (
-            metric.get("categoria")
-            or definition.get("chave_categoria")
-            or metric.get("categoria_id")
-        )
-        if not category_key:
-            continue
-
-        category_key = str(category_key)
-        category = grouped.setdefault(
-            category_key,
-            {
-                "name": definition.get("nome_categoria")
-                or humanize_key(str(metric.get("categoria") or category_key)),
-                "metrics": [],
-                "order": definition.get("ordem_exibicao")
-                or metric.get("categoria_id")
-                or 999,
-                "percentiles": [],
-            },
-        )
-
-        category["order"] = min(
-            category["order"],
-            definition.get("ordem_exibicao") or metric.get("categoria_id") or 999,
-        )
-        category["metrics"].append(
-            {
-                "name": definition.get("nome_metrica")
-                or humanize_key(str(metric.get("coluna_metrica") or "")),
-                "value": format_metric_value(metric.get("valor"), definition.get("eh_percentual")),
-                "order": definition.get("ordem_exibicao") or 999,
-            }
-        )
-        if not pd.isna(metric.get("percentil")):
-            try:
-                category["percentiles"].append(float(metric.get("percentil")))
-            except (TypeError, ValueError):
-                pass
-
-    cards = []
-    for category in grouped.values():
-        percentiles = category.pop("percentiles")
-        percentile = float(np.mean(percentiles)) if percentiles else 0.0
-        cards.append(
-            {
-                "name": category["name"],
-                "percentile": max(0, min(100, percentile)),
-                "metrics": sorted(category["metrics"], key=lambda item: item["order"])[:5],
-                "order": category["order"],
-            }
-        )
-
-    return sorted(cards, key=lambda item: item["order"])
-
-
-@st.cache_data(ttl=300, show_spinner=False)
-def load_player_score_cards(player_id: object) -> list[dict]:
-    path_id = storage_path_id(player_id)
-    if not path_id:
-        return []
-
-    try:
-        normalized_player_id = int(path_id)
-    except ValueError:
-        normalized_player_id = path_id
-
-    schema = get_score_schema()
-    score_rows = []
 
     for table in SCORE_TABLES:
         try:
             if get_database_url():
-                rows = fetch_rows_from_database(schema, table, "player_id", normalized_player_id)
+                rows = []
+                for column in SCORE_ID_COLUMNS:
+                    try:
+                        rows = fetch_rows_from_database(schema, table, column, normalized_player_id)
+                    except Exception:  # noqa: BLE001
+                        continue
+                    if rows:
+                        return rows
             else:
-                rows = (
-                    get_supabase_client()
-                    .schema(schema)
-                    .table(table)
-                    .select("*")
-                    .eq("player_id", normalized_player_id)
-                    .execute()
-                    .data
-                    or []
-                )
-            if rows:
-                score_rows = rows
-                break
+                for column in SCORE_ID_COLUMNS:
+                    try:
+                        rows = (
+                            get_supabase_client()
+                            .schema(schema)
+                            .table(table)
+                            .select("*")
+                            .eq(column, normalized_player_id)
+                            .execute()
+                            .data
+                            or []
+                        )
+                    except Exception:  # noqa: BLE001
+                        continue
+                    if rows:
+                        return rows
         except Exception:  # noqa: BLE001
             continue
 
+    return []
+
+
+def wide_score_categories(score_rows: list[dict]) -> list[dict]:
+    categories = []
+    for row in score_rows:
+        for column, value in row.items():
+            if not column.startswith(SCORE_VALUE_PREFIX) or pd.isna(value):
+                continue
+
+            suffix = column.removeprefix(SCORE_VALUE_PREFIX)
+            percentile = row.get(f"{SCORE_PERCENTILE_PREFIX}{suffix}")
+            categories.append(
+                {
+                    "name": score_category_name(suffix),
+                    "score": value,
+                    "percentile": percentile,
+                }
+            )
+    return categories
+
+
+def old_score_categories(score_rows: list[dict]) -> list[dict]:
     grouped: dict[str, list[float]] = {}
     for row in score_rows:
         if pd.isna(row.get("valor")):
@@ -1419,88 +1346,111 @@ def load_player_score_cards(player_id: object) -> list[dict]:
     return [
         {
             "name": category,
-            "value": format_score(float(np.mean(values))),
+            "score": float(np.mean(values)),
+            "percentile": None,
         }
         for category, values in sorted(grouped.items(), key=lambda item: item[0])
         if values
     ]
 
 
+def score_categories(score_rows: list[dict]) -> list[dict]:
+    categories = wide_score_categories(score_rows)
+    return categories if categories else old_score_categories(score_rows)
+
+
 @st.cache_data(ttl=300, show_spinner=False)
-def load_player_raw_metrics(player_id: object) -> list[dict]:
-    path_id = storage_path_id(player_id)
-    if not path_id:
-        return []
+def load_player_performance(player_id: object) -> list[dict]:
+    categories = score_categories(load_player_score_rows(player_id))
+    cards = []
 
-    try:
-        normalized_player_id = int(path_id)
-    except ValueError:
-        normalized_player_id = path_id
-
-    schema = get_score_schema()
-    metric_rows = []
-
-    for table in METRICS_TABLES:
+    for index, category in enumerate(categories):
+        percentile_value = category.get("percentile")
         try:
-            if get_database_url():
-                rows = fetch_rows_from_database(schema, table, "player_id", normalized_player_id)
-            else:
-                rows = (
-                    get_supabase_client()
-                    .schema(schema)
-                    .table(table)
-                    .select("*")
-                    .eq("player_id", normalized_player_id)
-                    .execute()
-                    .data
-                    or []
-                )
-            if rows:
-                metric_rows = rows
-                break
-        except Exception:  # noqa: BLE001
-            continue
+            percentile = float(percentile_value)
+        except (TypeError, ValueError):
+            percentile = 0.0
 
-    try:
-        metric_defs = (
-            fetch_rows_from_database(schema, "dim.metrics")
-            if get_database_url()
-            else (
-                get_supabase_client()
-                .schema(schema)
-                .table("dim.metrics")
-                .select("metrica_id,nome_metrica,ordem_exibicao,eh_percentual")
-                .execute()
-                .data
-                or []
+        metrics = [{"name": "Pontuacao", "value": format_score(category.get("score")), "order": 1}]
+        if not pd.isna(percentile_value):
+            metrics.append(
+                {
+                    "name": "Percentil",
+                    "value": format_percentile(percentile_value),
+                    "order": 2,
+                }
             )
-        )
-    except Exception:  # noqa: BLE001
-        metric_defs = []
 
-    metric_defs_by_id = {row["metrica_id"]: row for row in metric_defs if "metrica_id" in row}
-    metrics = []
-    for index, row in enumerate(metric_rows):
-        if pd.isna(row.get("valor")):
-            continue
-
-        definition = metric_defs_by_id.get(row.get("metrica_id"), {})
-        metric_name = (
-            definition.get("nome_metrica")
-            or row.get("coluna_metrica")
-            or row.get("metrica_id")
-            or row.get("categoria")
-            or "Metrica"
-        )
-        metrics.append(
+        cards.append(
             {
-                "name": humanize_key(str(metric_name)),
-                "value": format_metric_value(row.get("valor"), definition.get("eh_percentual")),
-                "order": definition.get("ordem_exibicao") or row.get("categoria_id") or index,
+                "name": category["name"],
+                "percentile": max(0, min(100, percentile)),
+                "metrics": metrics,
+                "order": index,
             }
         )
 
-    return sorted(metrics, key=lambda item: item["order"])[:12]
+    return cards
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def load_player_score_cards(player_id: object) -> list[dict]:
+    return [
+        {
+            "name": category["name"],
+            "value": format_score(category.get("score")),
+        }
+        for category in score_categories(load_player_score_rows(player_id))
+    ]
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def load_player_score_details(player_id: object) -> list[dict]:
+    score_rows = load_player_score_rows(player_id)
+    if not score_rows:
+        return []
+
+    details = []
+    first_row = score_rows[0]
+    metadata = [
+        ("Persona", first_row.get("persona")),
+        ("Minutos jogados", first_row.get("minutos_jogados")),
+        ("Ranking percentil", first_row.get("ranking_percentil")),
+    ]
+    for label, value in metadata:
+        if not pd.isna(value):
+            details.append({"name": label, "value": format_score(value) if label != "Persona" else clean_text(value)})
+
+    for category in score_categories(score_rows):
+        details.append(
+            {
+                "name": category["name"],
+                "value": format_score(category.get("score")),
+            }
+        )
+
+        percentile = category.get("percentile")
+        if not pd.isna(percentile):
+            details.append(
+                {
+                    "name": f"Percentil {category['name']}",
+                    "value": format_percentile(percentile),
+                }
+            )
+
+    if len(details) == 3:
+        for row in score_rows:
+            for column, value in row.items():
+                if column in SCORE_METADATA_COLUMNS or pd.isna(value):
+                    continue
+                details.append(
+                    {
+                        "name": humanize_key(column),
+                        "value": format_score(value),
+                    }
+                )
+
+    return details[:12]
 
 
 def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str]:
@@ -1568,11 +1518,12 @@ def prepare_function_profile_data(
         axis=1,
     )
     source["_function_label"] = source["_position_text"].map(function_label_from_position)
-    source["_cluster_text"] = (
-        source["cluster"].map(lambda value: clean_text(value, "Sem cluster"))
-        if "cluster" in source.columns
-        else "Sem cluster"
-    )
+    if "cluster" in source.columns:
+        source["_cluster_text"] = source["cluster"].map(lambda value: clean_text(value, "Sem cluster"))
+    elif "persona" in source.columns:
+        source["_cluster_text"] = source["persona"].map(lambda value: clean_text(value, "Sem cluster"))
+    else:
+        source["_cluster_text"] = "Sem cluster"
     return source
 
 
@@ -1646,18 +1597,18 @@ def render_player_score_content(
         for label, value in quick_facts
     )
 
-    raw_metrics = load_player_raw_metrics(player_id)
-    raw_metrics_html = "".join(
+    score_details = load_player_score_details(player_id)
+    score_details_html = "".join(
         '<div class="dialog-bio-card">'
-        f'<div class="dialog-bio-label">{html.escape(metric["name"])}</div>'
-        f'<div class="dialog-bio-value">{html.escape(metric["value"])}</div>'
+        f'<div class="dialog-bio-label">{html.escape(detail["name"])}</div>'
+        f'<div class="dialog-bio-value">{html.escape(detail["value"])}</div>'
         "</div>"
-        for metric in raw_metrics
+        for detail in score_details
     )
-    if not raw_metrics_html:
-        raw_metrics_html = (
+    if not score_details_html:
+        score_details_html = (
             '<div class="dialog-bio-card">'
-            '<div class="dialog-bio-label">Metricas brutas</div>'
+            '<div class="dialog-bio-label">Scores</div>'
             '<div class="dialog-bio-value">-</div>'
             "</div>"
         )
@@ -1696,10 +1647,10 @@ def render_player_score_content(
         f"""
         <section class="dialog-bio-shell">
             <div class="dialog-raw-title">
-                <div class="player-kicker">Metricas brutas</div>
-                <p class="section-note">Fonte: fact.metrics_players</p>
+                <div class="player-kicker">Scores</div>
+                <p class="section-note">Fonte: fact.scores_players</p>
             </div>
-            <div class="dialog-bio-grid">{raw_metrics_html}</div>
+            <div class="dialog-bio-grid">{score_details_html}</div>
         </section>
         """,
         unsafe_allow_html=True,
@@ -2022,7 +1973,11 @@ player_age = calculate_age(player_row["data_nascimento"]) if "data_nascimento" i
 player_birth_date = format_date(player_row["data_nascimento"]) if "data_nascimento" in player_row.index else "-"
 player_foot = row_value(player_row, "pe_preferido")
 player_contract = format_date(player_row["contrato_ate"]) if "contrato_ate" in player_row.index else "-"
-cluster_value = row_value(player_row, "cluster", "Sem cluster")
+cluster_value = first_valid_text(
+    player_row["cluster"] if "cluster" in player_row.index else None,
+    player_row["persona"] if "persona" in player_row.index else None,
+    fallback="Sem cluster",
+)
 cluster_source = clean_text(player_position, "Grupo nao identificado")
 
 st.markdown(
