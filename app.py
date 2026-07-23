@@ -229,6 +229,33 @@ def load_background_css() -> str:
             top: 0;
         }}
 
+        .function-hero {{
+            align-items: center;
+            background: linear-gradient(135deg, rgba(8, 16, 22, 0.90), rgba(8, 16, 22, 0.58));
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            box-shadow: 0 18px 54px rgba(0, 0, 0, 0.34);
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+            margin-top: 0.25rem;
+            min-height: 138px;
+            overflow: hidden;
+            padding: 1.2rem;
+            position: relative;
+            text-align: center;
+        }}
+
+        .function-hero::before {{
+            background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
+            content: "";
+            height: 4px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }}
+
         .team-crest {{
             align-items: center;
             background: rgba(255, 255, 255, 0.92);
@@ -411,10 +438,29 @@ def load_background_css() -> str:
             display: flex;
             gap: 1rem;
             justify-content: space-between;
-            margin-bottom: 0.55rem;
+            margin-bottom: 0.65rem;
         }}
 
-        .score-radar-panel,
+        .ranking-heading {{
+            align-items: baseline;
+            display: flex;
+            gap: 0.65rem;
+        }}
+
+        .ranking-heading-label {{
+            color: rgba(203, 213, 225, 0.72);
+            font-size: 0.82rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }}
+
+        .ranking-heading-value {{
+            color: #f8fafc;
+            font-size: clamp(1.85rem, 3.2vw, 2.65rem);
+            font-weight: 900;
+            line-height: 1;
+        }}
+
         .score-support-panel {{
             background:
                 linear-gradient(145deg, rgba(8, 16, 22, 0.94), rgba(7, 13, 18, 0.74));
@@ -426,7 +472,6 @@ def load_background_css() -> str:
             position: relative;
         }}
 
-        .score-radar-panel::before,
         .score-support-panel::before {{
             background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
             content: "";
@@ -437,87 +482,65 @@ def load_background_css() -> str:
             top: 0;
         }}
 
-        .score-radar-panel {{
-            min-height: 460px;
-        }}
-
         div[data-testid="stPlotlyChart"] {{
             background:
                 linear-gradient(145deg, rgba(8, 16, 22, 0.94), rgba(7, 13, 18, 0.74));
             border: 1px solid rgba(255, 255, 255, 0.14);
             border-radius: 8px;
             box-shadow: 0 16px 38px rgba(0, 0, 0, 0.26);
-            min-height: 460px;
+            margin: 0 auto;
+            max-width: 900px;
+            min-height: 510px;
             overflow: hidden;
             padding: 0.82rem;
         }}
 
         .score-support-panel {{
-            min-height: 460px;
+            margin-top: 0.72rem;
+            padding: 0.88rem;
         }}
 
-        .ranking-card {{
-            background:
-                linear-gradient(135deg, rgba(34, 197, 94, 0.16), rgba(56, 189, 248, 0.08)),
-                rgba(255, 255, 255, 0.055);
-            border: 1px solid rgba(34, 197, 94, 0.22);
+        .score-support-strip {{
+            display: grid;
+            gap: 0.62rem;
+            grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+        }}
+
+        .score-support-card {{
+            background: rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(255, 255, 255, 0.09);
             border-radius: 8px;
-            margin-bottom: 0.72rem;
-            padding: 0.76rem 0.82rem;
+            display: grid;
+            gap: 0.48rem;
+            grid-template-columns: minmax(0, 1fr);
+            min-height: 112px;
+            padding: 0.7rem;
         }}
 
-        .ranking-label {{
-            color: rgba(203, 213, 225, 0.72);
-            font-size: 0.62rem;
+        .score-support-category {{
+            color: rgba(226, 232, 240, 0.88);
+            font-size: 0.82rem;
             font-weight: 900;
-            margin-bottom: 0.18rem;
-            text-transform: uppercase;
+            line-height: 1.12;
         }}
 
-        .ranking-value {{
-            color: #f8fafc;
-            font-size: 2.05rem;
-            font-weight: 900;
-            line-height: 1;
+        .score-support-metrics {{
+            display: grid;
+            gap: 0.45rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }}
 
-        .score-support-table {{
-            border-collapse: separate;
-            border-spacing: 0 0.36rem;
-            width: 100%;
-        }}
-
-        .score-support-table th {{
+        .score-support-label {{
             color: rgba(203, 213, 225, 0.66);
             font-size: 0.58rem;
             font-weight: 900;
-            padding: 0 0.36rem 0.1rem 0.36rem;
-            text-align: left;
             text-transform: uppercase;
         }}
 
-        .score-support-table td {{
-            background: rgba(255, 255, 255, 0.055);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        .score-support-value {{
             color: #f8fafc;
-            font-size: 0.74rem;
-            font-weight: 800;
-            line-height: 1.1;
-            padding: 0.48rem 0.36rem;
-            vertical-align: middle;
-        }}
-
-        .score-support-table td:first-child {{
-            border-left: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px 0 0 8px;
-            color: rgba(226, 232, 240, 0.84);
             font-weight: 900;
-        }}
-
-        .score-support-table td:last-child {{
-            border-radius: 0 8px 8px 0;
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            line-height: 1.05;
         }}
 
         .section-header {{
@@ -743,10 +766,13 @@ def load_background_css() -> str:
                 rgba(255, 255, 255, 0.045);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
+            box-sizing: border-box;
             margin-top: 0.1rem;
             margin-bottom: 0.05rem;
-            padding: 0.48rem 0.58rem;
+            min-height: 104px;
+            padding: 1.02rem 3.4rem 1rem 0.8rem;
             position: relative;
+            width: calc(100% + 3.2rem);
         }}
 
         .cluster-player-row {{
@@ -989,21 +1015,26 @@ def load_background_css() -> str:
         }}
 
         div[data-testid="stButton"] > button[title="Fechar cluster"] {{
-            background: rgba(255, 255, 255, 0.07);
-            border-color: rgba(255, 255, 255, 0.16);
+            background: transparent !important;
+            border-color: transparent !important;
             border-radius: 999px;
             box-shadow: none;
             color: rgba(248, 250, 252, 0.72);
-            font-size: 0.72rem;
-            min-height: 1.55rem;
+            font-size: 1rem;
+            min-height: 2.1rem;
             padding: 0;
-            width: 1.55rem;
+            position: relative;
+            top: 1rem;
+            transform: translateX(-2.65rem);
+            width: 2.1rem;
+            z-index: 4;
         }}
 
         div[data-testid="stButton"] > button[title="Fechar cluster"]:hover {{
-            background: rgba(248, 113, 113, 0.16);
-            border-color: rgba(248, 113, 113, 0.34);
+            background: rgba(255, 255, 255, 0.06) !important;
+            border-color: rgba(255, 255, 255, 0.12) !important;
             color: #f8fafc;
+            transform: translateX(-2.65rem);
         }}
 
         div[data-testid="stDialog"],
@@ -1542,86 +1573,58 @@ def load_player_score_details(player_id: object) -> list[dict]:
         return []
 
     details = []
-    first_row = score_rows[0]
-    metadata = [
-        ("Persona", score_cluster_from_rows(score_rows, fallback="-")),
-        ("Minutos jogados", first_row.get("minutos_jogados")),
-        ("Ranking percentil", first_row.get("ranking_percentil")),
-    ]
-    for label, value in metadata:
-        if not pd.isna(value):
-            details.append({"name": label, "value": format_score(value) if label != "Persona" else clean_text(value)})
-
     for category in score_categories(score_rows):
-        details.append(
-            {
-                "name": category["name"],
-                "value": format_score(category.get("score")),
-            }
-        )
-
         percentile = category.get("percentile")
         if not pd.isna(percentile):
             details.append(
                 {
-                    "name": f"Percentil {category['name']}",
+                    "name": category["name"],
                     "value": format_percentile(percentile),
                 }
             )
-
-    if len(details) == 3:
-        for row in score_rows:
-            for column, value in row.items():
-                if column in SCORE_METADATA_COLUMNS or pd.isna(value):
-                    continue
-                details.append(
-                    {
-                        "name": humanize_key(column),
-                        "value": format_score(value),
-                    }
-                )
 
     return details[:12]
 
 
 def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
-    first_row = score_rows[0] if score_rows else {}
-    ranking = format_rank(first_row.get("ranking_percentil"))
-    rows_html = []
+    cards_html = []
 
     for category in categories:
-        rows_html.append(
-            "<tr>"
-            f"<td>{html.escape(category['name'])}</td>"
-            f"<td>{html.escape(format_score(category.get('score')))}</td>"
-            f"<td>{html.escape(format_percentile(category.get('percentile')))}</td>"
-            "</tr>"
+        cards_html.append(
+            '<article class="score-support-card">'
+            f'<div class="score-support-category">{html.escape(category["name"])}</div>'
+            '<div class="score-support-metrics">'
+            '<div>'
+            '<div class="score-support-label">Score bruto</div>'
+            f'<div class="score-support-value">{html.escape(format_score(category.get("score")))}</div>'
+            "</div>"
+            '<div>'
+            '<div class="score-support-label">Percentil</div>'
+            f'<div class="score-support-value">{html.escape(format_percentile(category.get("percentile")))}</div>'
+            "</div>"
+            "</div>"
+            "</article>"
         )
 
-    if not rows_html:
-        rows_html.append(
-            "<tr>"
-            "<td>Sem categoria</td>"
-            "<td>-</td>"
-            "<td>-</td>"
-            "</tr>"
+    if not cards_html:
+        cards_html.append(
+            '<article class="score-support-card">'
+            '<div class="score-support-category">Sem categoria</div>'
+            '<div class="score-support-metrics">'
+            '<div><div class="score-support-label">Score bruto</div><div class="score-support-value">-</div></div>'
+            '<div><div class="score-support-label">Percentil</div><div class="score-support-value">-</div></div>'
+            "</div>"
+            "</article>"
         )
 
     return (
         '<section class="score-support-panel">'
-        '<div class="ranking-card">'
-        '<div class="ranking-label">Posicao no ranking</div>'
-        f'<div class="ranking-value">{html.escape(ranking)}</div>'
-        "</div>"
-        '<table class="score-support-table">'
-        "<thead><tr><th>Categoria</th><th>Score bruto</th><th>Percentil</th></tr></thead>"
-        f"<tbody>{''.join(rows_html)}</tbody>"
-        "</table>"
+        f'<div class="score-support-strip">{"".join(cards_html)}</div>'
         "</section>"
     )
 
 
-def score_radar_figure(categories: list[dict], player_name: str, cluster_value: str) -> go.Figure:
+def score_radar_figure(categories: list[dict]) -> go.Figure:
     labels = []
     values = []
     for category in categories:
@@ -1655,19 +1658,14 @@ def score_radar_figure(categories: list[dict], player_name: str, cluster_value: 
         )
     )
     figure.update_layout(
-        height=430,
-        margin={"l": 34, "r": 34, "t": 64, "b": 28},
+        height=500,
+        margin={"l": 96, "r": 96, "t": 24, "b": 42},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
-        title={
-            "text": f"{html.escape(player_name)}<br><sup>{html.escape(cluster_value)}</sup>",
-            "x": 0.5,
-            "xanchor": "center",
-            "font": {"color": "#f8fafc", "size": 22},
-        },
         polar={
             "bgcolor": "rgba(2, 6, 23, 0.18)",
+            "domain": {"x": [0.08, 0.92], "y": [0.04, 0.96]},
             "radialaxis": {
                 "range": [0, 100],
                 "tickvals": [20, 40, 60, 80, 100],
@@ -1685,20 +1683,25 @@ def score_radar_figure(categories: list[dict], player_name: str, cluster_value: 
     return figure
 
 
-def render_score_profile_section(player_id: object, player_name: str, cluster_value: str) -> None:
+def render_score_profile_section(player_id: object) -> None:
     score_rows = load_player_score_rows(player_id)
     categories = score_categories(score_rows)
     radar_categories = [category for category in categories if not pd.isna(category.get("percentile"))]
+    first_row = score_rows[0] if score_rows else {}
+    ranking = format_rank(first_row.get("ranking_percentil"))
 
     st.markdown(
-        """
+        f"""
         <section class="score-style-section">
             <div class="score-style-heading">
                 <div>
                     <div class="player-kicker">Estilo de jogo</div>
-                    <h2 class="section-title">Radar de percentis</h2>
+                    <div class="ranking-heading">
+                        <div class="ranking-heading-label">Posicao no ranking</div>
+                        <div class="ranking-heading-value">{html.escape(ranking)}</div>
+                    </div>
                 </div>
-                <p class="section-note">Percentis por categoria de score; apoio lateral com valores brutos</p>
+                <p class="section-note">Percentis por categoria de score e valores brutos por categoria</p>
             </div>
         </section>
         """,
@@ -1709,16 +1712,12 @@ def render_score_profile_section(player_id: object, player_name: str, cluster_va
         st.warning("Nao encontrei percentis de score para desenhar o radar desse jogador.")
         return
 
-    radar_column, table_column = st.columns([1.85, 1], gap="small")
-    with radar_column:
-        st.plotly_chart(
-            score_radar_figure(categories, player_name, cluster_value),
-            use_container_width=True,
-            config={"displayModeBar": False, "responsive": True},
-        )
-
-    with table_column:
-        st.markdown(score_table_html(score_rows, categories), unsafe_allow_html=True)
+    st.plotly_chart(
+        score_radar_figure(categories),
+        use_container_width=True,
+        config={"displayModeBar": False, "responsive": True},
+    )
+    st.markdown(score_table_html(score_rows, categories), unsafe_allow_html=True)
 
 
 def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str]:
@@ -1859,7 +1858,6 @@ def render_score_cards(score_cards: list[dict]) -> str:
         '<div class="player-kicker">Scores do jogador</div>'
         '<h2 class="section-title">Categorias de score</h2>'
         "</div>"
-        '<p class="section-note">Fonte: fact.scores_players</p>'
         "</div>"
         f'<div class="score-grid">{"".join(cards_html)}</div>'
         "</section>"
@@ -1936,19 +1934,11 @@ def render_player_score_content(
         st.warning("Nao encontrei jogador_id para carregar os scores desse atleta.")
         return
 
-    score_cards = load_player_score_cards(player_id)
-    score_html = render_score_cards(score_cards)
-    if score_html:
-        st.markdown(score_html, unsafe_allow_html=True)
-    else:
-        st.warning("Nao encontrei scores em fact.scores_players para esse jogador.")
-
     st.markdown(
         f"""
         <section class="dialog-bio-shell">
             <div class="dialog-raw-title">
                 <div class="player-kicker">Scores</div>
-                <p class="section-note">Fonte: fact.scores_players</p>
             </div>
             <div class="dialog-bio-grid">{score_details_html}</div>
         </section>
@@ -2049,13 +2039,8 @@ def render_function_profile_page(
 
     st.markdown(
         """
-        <section class="team-hero">
-            <div class="team-crest"></div>
-            <div>
-                <div class="eyebrow">Pagina 2</div>
-                <div class="main-title">Perfil por Função</div>
-                <p class="subtitle">Clusters por posicao, atletas e scores tecnicos por categoria</p>
-            </div>
+        <section class="function-hero">
+            <div class="main-title">Perfil por Função</div>
         </section>
         """,
         unsafe_allow_html=True,
@@ -2288,7 +2273,7 @@ st.markdown(
             </div>
         </div>
         <div class="cluster-panel">
-            <div class="cluster-label">Funcao tecnica</div>
+            <div class="cluster-label">Tipo de jogador</div>
             <div class="cluster-value">{html.escape(cluster_value)}</div>
         </div>
     </section>
@@ -2296,4 +2281,4 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-render_score_profile_section(player_id, selected_player, cluster_value)
+render_score_profile_section(player_id)
