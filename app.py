@@ -10,6 +10,7 @@ from typing import Iterable
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 import psycopg
 import streamlit as st
 from psycopg import sql
@@ -31,12 +32,11 @@ SCORE_TABLES = [
     "fact.scores_players.laterais",
     "fact.scores_players.meias",
 ]
-SCORE_ID_COLUMNS = ("jogador_id", "player_id")
+SCORE_ID_COLUMN = "jogador_id"
 SCORE_VALUE_PREFIX = "pontuacao_"
 SCORE_PERCENTILE_PREFIX = "percentil_"
 SCORE_METADATA_COLUMNS = {
     "jogador_id",
-    "player_id",
     "posicao",
     "minutos_jogados",
     "persona",
@@ -97,6 +97,12 @@ POSITION_COLUMN_CANDIDATES = [
 PAGE_PERFIL_INDIVIDUAL = "Perfil Individual"
 PAGE_PERFIL_FUNCAO = "Perfil por Função"
 APP_PAGES = [PAGE_PERFIL_INDIVIDUAL, PAGE_PERFIL_FUNCAO]
+DEFAULT_TEAM_NAME = "América Mineiro U20"
+DEFAULT_TEAM_ALIASES = (
+    DEFAULT_TEAM_NAME,
+    "America Mineiro U20",
+    "Am�rica Mineiro U20",
+)
 FUNCTION_ORDER = ["Goleiro", "Lateral", "Defensor", "Meia", "Atacante", "Outras funções"]
 
 
@@ -298,7 +304,7 @@ def load_background_css() -> str:
             display: grid;
             align-items: start;
             gap: 0.65rem;
-            grid-template-columns: minmax(160px, 205px) minmax(0, 1fr) minmax(180px, 225px);
+            grid-template-columns: minmax(160px, 205px) minmax(245px, 310px) minmax(300px, 1fr);
             overflow: hidden;
             padding: 0.65rem;
         }}
@@ -335,8 +341,8 @@ def load_background_css() -> str:
         .bio-grid {{
             display: grid;
             align-content: start;
-            gap: 0.45rem;
-            grid-auto-rows: minmax(66px, auto);
+            gap: 0.38rem;
+            grid-auto-rows: minmax(58px, auto);
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }}
 
@@ -344,21 +350,21 @@ def load_background_css() -> str:
             background: rgba(255, 255, 255, 0.075);
             border: 1px solid rgba(255, 255, 255, 0.13);
             border-radius: 8px;
-            min-height: 66px;
-            padding: 0.52rem 0.64rem;
+            min-height: 58px;
+            padding: 0.44rem 0.5rem;
         }}
 
         .bio-label {{
             color: rgba(203, 213, 225, 0.72);
-            font-size: 0.66rem;
+            font-size: 0.58rem;
             font-weight: 700;
-            margin-bottom: 0.28rem;
+            margin-bottom: 0.22rem;
             text-transform: uppercase;
         }}
 
         .bio-value {{
             color: #f8fafc;
-            font-size: clamp(0.98rem, 1.3vw, 1.28rem);
+            font-size: 0.94rem;
             font-weight: 800;
             line-height: 1.08;
         }}
@@ -373,34 +379,145 @@ def load_background_css() -> str:
             flex-direction: column;
             justify-content: center;
             min-height: 220px;
-            padding: 0.85rem;
+            padding: 1.2rem;
         }}
 
         .cluster-label {{
             color: rgba(203, 213, 225, 0.72);
-            font-size: 0.66rem;
+            font-size: 0.72rem;
             font-weight: 800;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.55rem;
             text-transform: uppercase;
         }}
 
         .cluster-value {{
             color: #f8fafc;
-            font-size: clamp(1.6rem, 2.7vw, 2.35rem);
+            font-size: clamp(2.15rem, 4vw, 3.6rem);
             font-weight: 900;
-            line-height: 0.98;
-            margin-bottom: 0.35rem;
-        }}
-
-        .cluster-source {{
-            color: rgba(248, 250, 252, 0.62);
-            font-size: 0.78rem;
-            font-weight: 700;
+            line-height: 1;
             margin-bottom: 0;
         }}
 
         .performance-section {{
             margin-top: 0.7rem;
+        }}
+
+        .score-style-section {{
+            margin-top: 0.75rem;
+        }}
+
+        .score-style-heading {{
+            align-items: end;
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            margin-bottom: 0.55rem;
+        }}
+
+        .score-radar-panel,
+        .score-support-panel {{
+            background:
+                linear-gradient(145deg, rgba(8, 16, 22, 0.94), rgba(7, 13, 18, 0.74));
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 8px;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.26);
+            overflow: hidden;
+            padding: 0.82rem;
+            position: relative;
+        }}
+
+        .score-radar-panel::before,
+        .score-support-panel::before {{
+            background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
+            content: "";
+            height: 3px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }}
+
+        .score-radar-panel {{
+            min-height: 460px;
+        }}
+
+        div[data-testid="stPlotlyChart"] {{
+            background:
+                linear-gradient(145deg, rgba(8, 16, 22, 0.94), rgba(7, 13, 18, 0.74));
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 8px;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.26);
+            min-height: 460px;
+            overflow: hidden;
+            padding: 0.82rem;
+        }}
+
+        .score-support-panel {{
+            min-height: 460px;
+        }}
+
+        .ranking-card {{
+            background:
+                linear-gradient(135deg, rgba(34, 197, 94, 0.16), rgba(56, 189, 248, 0.08)),
+                rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(34, 197, 94, 0.22);
+            border-radius: 8px;
+            margin-bottom: 0.72rem;
+            padding: 0.76rem 0.82rem;
+        }}
+
+        .ranking-label {{
+            color: rgba(203, 213, 225, 0.72);
+            font-size: 0.62rem;
+            font-weight: 900;
+            margin-bottom: 0.18rem;
+            text-transform: uppercase;
+        }}
+
+        .ranking-value {{
+            color: #f8fafc;
+            font-size: 2.05rem;
+            font-weight: 900;
+            line-height: 1;
+        }}
+
+        .score-support-table {{
+            border-collapse: separate;
+            border-spacing: 0 0.36rem;
+            width: 100%;
+        }}
+
+        .score-support-table th {{
+            color: rgba(203, 213, 225, 0.66);
+            font-size: 0.58rem;
+            font-weight: 900;
+            padding: 0 0.36rem 0.1rem 0.36rem;
+            text-align: left;
+            text-transform: uppercase;
+        }}
+
+        .score-support-table td {{
+            background: rgba(255, 255, 255, 0.055);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: #f8fafc;
+            font-size: 0.74rem;
+            font-weight: 800;
+            line-height: 1.1;
+            padding: 0.48rem 0.36rem;
+            vertical-align: middle;
+        }}
+
+        .score-support-table td:first-child {{
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px 0 0 8px;
+            color: rgba(226, 232, 240, 0.84);
+            font-weight: 900;
+        }}
+
+        .score-support-table td:last-child {{
+            border-radius: 0 8px 8px 0;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
         }}
 
         .section-header {{
@@ -1139,6 +1256,18 @@ def format_score(value: object) -> str:
     return f"{number:.1f}".replace(".", ",")
 
 
+def format_rank(value: object) -> str:
+    if pd.isna(value):
+        return "-"
+
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return clean_text(value)
+
+    return f"#{int(number)}" if number.is_integer() else f"#{format_score(number)}"
+
+
 def format_percentile(value: object) -> str:
     formatted = format_score(value)
     return "-" if formatted == "-" else f"{formatted}%"
@@ -1281,31 +1410,22 @@ def load_player_score_rows(player_id: object) -> list[dict]:
     for table in SCORE_TABLES:
         try:
             if get_database_url():
-                rows = []
-                for column in SCORE_ID_COLUMNS:
-                    try:
-                        rows = fetch_rows_from_database(schema, table, column, normalized_player_id)
-                    except Exception:  # noqa: BLE001
-                        continue
-                    if rows:
-                        return rows
+                rows = fetch_rows_from_database(schema, table, SCORE_ID_COLUMN, normalized_player_id)
+                if rows:
+                    return rows
             else:
-                for column in SCORE_ID_COLUMNS:
-                    try:
-                        rows = (
-                            get_supabase_client()
-                            .schema(schema)
-                            .table(table)
-                            .select("*")
-                            .eq(column, normalized_player_id)
-                            .execute()
-                            .data
-                            or []
-                        )
-                    except Exception:  # noqa: BLE001
-                        continue
-                    if rows:
-                        return rows
+                rows = (
+                    get_supabase_client()
+                    .schema(schema)
+                    .table(table)
+                    .select("*")
+                    .eq(SCORE_ID_COLUMN, normalized_player_id)
+                    .execute()
+                    .data
+                    or []
+                )
+                if rows:
+                    return rows
         except Exception:  # noqa: BLE001
             continue
 
@@ -1359,38 +1479,49 @@ def score_categories(score_rows: list[dict]) -> list[dict]:
     return categories if categories else old_score_categories(score_rows)
 
 
+def score_cluster_from_rows(score_rows: list[dict], fallback: str = "Sem cluster") -> str:
+    values = []
+    for row in score_rows:
+        values.extend([row.get("persona"), row.get("cluster")])
+
+    return first_valid_text(*values, fallback=fallback)
+
+
+def score_position_from_rows(score_rows: list[dict], fallback: str = "Sem posicao") -> str:
+    return first_valid_text(*(row.get("posicao") for row in score_rows), fallback=fallback)
+
+
 @st.cache_data(ttl=300, show_spinner=False)
-def load_player_performance(player_id: object) -> list[dict]:
-    categories = score_categories(load_player_score_rows(player_id))
-    cards = []
+def load_score_profiles_by_player() -> dict[str, dict[str, str]]:
+    schema = get_score_schema()
+    profiles: dict[str, dict[str, str]] = {}
 
-    for index, category in enumerate(categories):
-        percentile_value = category.get("percentile")
+    for table in SCORE_TABLES:
         try:
-            percentile = float(percentile_value)
-        except (TypeError, ValueError):
-            percentile = 0.0
-
-        metrics = [{"name": "Pontuacao", "value": format_score(category.get("score")), "order": 1}]
-        if not pd.isna(percentile_value):
-            metrics.append(
-                {
-                    "name": "Percentil",
-                    "value": format_percentile(percentile_value),
-                    "order": 2,
-                }
+            rows = (
+                fetch_rows_from_database(schema, table)
+                if get_database_url()
+                else fetch_rows_from_supabase_api(schema, table)
             )
+        except Exception:  # noqa: BLE001
+            continue
 
-        cards.append(
-            {
-                "name": category["name"],
-                "percentile": max(0, min(100, percentile)),
-                "metrics": metrics,
-                "order": index,
+        for row in rows:
+            player_key = storage_path_id(row.get(SCORE_ID_COLUMN))
+            if not player_key or player_key in profiles:
+                continue
+
+            profiles[player_key] = {
+                "cluster": score_cluster_from_rows([row], fallback="Sem cluster"),
+                "position": score_position_from_rows([row], fallback="Sem posicao"),
             }
-        )
 
-    return cards
+    return profiles
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def load_player_score_cluster(player_id: object) -> str:
+    return score_cluster_from_rows(load_player_score_rows(player_id))
 
 
 @st.cache_data(ttl=300, show_spinner=False)
@@ -1413,7 +1544,7 @@ def load_player_score_details(player_id: object) -> list[dict]:
     details = []
     first_row = score_rows[0]
     metadata = [
-        ("Persona", first_row.get("persona")),
+        ("Persona", score_cluster_from_rows(score_rows, fallback="-")),
         ("Minutos jogados", first_row.get("minutos_jogados")),
         ("Ranking percentil", first_row.get("ranking_percentil")),
     ]
@@ -1453,6 +1584,143 @@ def load_player_score_details(player_id: object) -> list[dict]:
     return details[:12]
 
 
+def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
+    first_row = score_rows[0] if score_rows else {}
+    ranking = format_rank(first_row.get("ranking_percentil"))
+    rows_html = []
+
+    for category in categories:
+        rows_html.append(
+            "<tr>"
+            f"<td>{html.escape(category['name'])}</td>"
+            f"<td>{html.escape(format_score(category.get('score')))}</td>"
+            f"<td>{html.escape(format_percentile(category.get('percentile')))}</td>"
+            "</tr>"
+        )
+
+    if not rows_html:
+        rows_html.append(
+            "<tr>"
+            "<td>Sem categoria</td>"
+            "<td>-</td>"
+            "<td>-</td>"
+            "</tr>"
+        )
+
+    return (
+        '<section class="score-support-panel">'
+        '<div class="ranking-card">'
+        '<div class="ranking-label">Posicao no ranking</div>'
+        f'<div class="ranking-value">{html.escape(ranking)}</div>'
+        "</div>"
+        '<table class="score-support-table">'
+        "<thead><tr><th>Categoria</th><th>Score bruto</th><th>Percentil</th></tr></thead>"
+        f"<tbody>{''.join(rows_html)}</tbody>"
+        "</table>"
+        "</section>"
+    )
+
+
+def score_radar_figure(categories: list[dict], player_name: str, cluster_value: str) -> go.Figure:
+    labels = []
+    values = []
+    for category in categories:
+        percentile = category.get("percentile")
+        if pd.isna(percentile):
+            continue
+
+        try:
+            percentile_number = float(percentile)
+        except (TypeError, ValueError):
+            continue
+
+        labels.append(category["name"])
+        values.append(max(0, min(100, percentile_number)))
+
+    if labels and values:
+        labels = [*labels, labels[0]]
+        values = [*values, values[0]]
+
+    figure = go.Figure()
+    figure.add_trace(
+        go.Scatterpolar(
+            r=values,
+            theta=labels,
+            fill="toself",
+            fillcolor="rgba(34, 197, 94, 0.26)",
+            line={"color": "#22c55e", "width": 3},
+            marker={"color": "#facc15", "size": 8, "line": {"color": "#0f172a", "width": 1}},
+            hovertemplate="%{theta}<br>Percentil %{r:.1f}%<extra></extra>",
+            name="Percentil",
+        )
+    )
+    figure.update_layout(
+        height=430,
+        margin={"l": 34, "r": 34, "t": 64, "b": 28},
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        showlegend=False,
+        title={
+            "text": f"{html.escape(player_name)}<br><sup>{html.escape(cluster_value)}</sup>",
+            "x": 0.5,
+            "xanchor": "center",
+            "font": {"color": "#f8fafc", "size": 22},
+        },
+        polar={
+            "bgcolor": "rgba(2, 6, 23, 0.18)",
+            "radialaxis": {
+                "range": [0, 100],
+                "tickvals": [20, 40, 60, 80, 100],
+                "tickfont": {"color": "rgba(226, 232, 240, 0.62)", "size": 10},
+                "gridcolor": "rgba(255, 255, 255, 0.16)",
+                "linecolor": "rgba(255, 255, 255, 0.16)",
+            },
+            "angularaxis": {
+                "tickfont": {"color": "#f8fafc", "size": 12},
+                "gridcolor": "rgba(255, 255, 255, 0.12)",
+                "linecolor": "rgba(255, 255, 255, 0.18)",
+            },
+        },
+    )
+    return figure
+
+
+def render_score_profile_section(player_id: object, player_name: str, cluster_value: str) -> None:
+    score_rows = load_player_score_rows(player_id)
+    categories = score_categories(score_rows)
+    radar_categories = [category for category in categories if not pd.isna(category.get("percentile"))]
+
+    st.markdown(
+        """
+        <section class="score-style-section">
+            <div class="score-style-heading">
+                <div>
+                    <div class="player-kicker">Estilo de jogo</div>
+                    <h2 class="section-title">Radar de percentis</h2>
+                </div>
+                <p class="section-note">Percentis por categoria de score; apoio lateral com valores brutos</p>
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if not score_rows or not radar_categories:
+        st.warning("Nao encontrei percentis de score para desenhar o radar desse jogador.")
+        return
+
+    radar_column, table_column = st.columns([1.85, 1], gap="small")
+    with radar_column:
+        st.plotly_chart(
+            score_radar_figure(categories, player_name, cluster_value),
+            use_container_width=True,
+            config={"displayModeBar": False, "responsive": True},
+        )
+
+    with table_column:
+        st.markdown(score_table_html(score_rows, categories), unsafe_allow_html=True)
+
+
 def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str]:
     numeric_columns = df.select_dtypes(include=["number"]).columns.tolist()
     return [
@@ -1472,6 +1740,23 @@ def normalize_search_text(value: object) -> str:
         for char in unicodedata.normalize("NFD", text)
         if unicodedata.category(char) != "Mn"
     )
+
+
+def default_team_index(teams: list[str]) -> int | None:
+    if not teams:
+        return None
+
+    normalized_aliases = {normalize_search_text(alias) for alias in DEFAULT_TEAM_ALIASES}
+    for index, team in enumerate(teams):
+        if team in DEFAULT_TEAM_ALIASES or normalize_search_text(team) in normalized_aliases:
+            return index
+
+    for index, team in enumerate(teams):
+        normalized_team = normalize_search_text(team)
+        if "mineiro" in normalized_team and "u20" in normalized_team and normalized_team.startswith("am"):
+            return index
+
+    return 0
 
 
 def function_label_from_position(value: object) -> str:
@@ -1513,15 +1798,30 @@ def prepare_function_profile_data(
     position_column: str | None,
 ) -> pd.DataFrame:
     source = data.copy()
+    score_profiles = load_score_profiles_by_player()
+    if SCORE_ID_COLUMN in source.columns and score_profiles:
+        source = source[
+            source[SCORE_ID_COLUMN].map(lambda value: (storage_path_id(value) or "") in score_profiles)
+        ].copy()
+        source["_score_position_text"] = source[SCORE_ID_COLUMN].map(
+            lambda value: score_profiles.get(storage_path_id(value) or "", {}).get("position", "Sem posicao")
+        )
+    else:
+        source["_score_position_text"] = "Sem posicao"
+
     source["_position_text"] = source.apply(
-        lambda row: player_position_text(row, position_column),
+        lambda row: first_valid_text(
+            row["_score_position_text"],
+            player_position_text(row, position_column),
+            fallback="Funcao nao informada",
+        ),
         axis=1,
     )
     source["_function_label"] = source["_position_text"].map(function_label_from_position)
-    if "cluster" in source.columns:
-        source["_cluster_text"] = source["cluster"].map(lambda value: clean_text(value, "Sem cluster"))
-    elif "persona" in source.columns:
-        source["_cluster_text"] = source["persona"].map(lambda value: clean_text(value, "Sem cluster"))
+    if SCORE_ID_COLUMN in source.columns:
+        source["_cluster_text"] = source[SCORE_ID_COLUMN].map(
+            lambda value: score_profiles.get(storage_path_id(value) or "", {}).get("cluster", "Sem cluster")
+        )
     else:
         source["_cluster_text"] = "Sem cluster"
     return source
@@ -1721,7 +2021,7 @@ def render_selected_cluster_players(
                 ),
             ):
                 selected_position = clean_text(row["_position_text"], "Funcao nao informada")
-                selected_player_id = row["jogador_id"] if "jogador_id" in row.index else None
+                selected_player_id = row[SCORE_ID_COLUMN] if SCORE_ID_COLUMN in row.index else None
                 player_info = {
                     "name": player_name,
                     "team": team_name,
@@ -1817,61 +2117,6 @@ def render_function_profile_page(
         st.info("Selecione um cluster para ver os jogadores.")
 
 
-def render_performance_cards(cards: list[dict]) -> str:
-    if not cards:
-        return ""
-
-    card_html = []
-    for card in cards:
-        percentile = card["percentile"]
-        metrics = card["metrics"]
-        metric_rows = "".join(
-            '<div class="metric-row">'
-            f'<div class="metric-name">{html.escape(metric["name"])}</div>'
-            f'<div class="metric-value">{html.escape(metric["value"])}</div>'
-            "</div>"
-            for metric in metrics
-        )
-        if not metric_rows:
-            metric_rows = (
-                '<div class="metric-row">'
-                '<div class="metric-name">Métricas disponíveis</div>'
-                '<div class="metric-value">-</div>'
-                "</div>"
-            )
-
-        card_html.append(
-            '<article class="performance-card">'
-            '<div class="performance-top">'
-            f'<div class="percent-gauge" style="--pct: {percentile:.2f}">'
-            f'<div class="percent-number">{percentile:.0f}</div>'
-            "</div>"
-            "<div>"
-            '<div class="performance-label">Nivel no grupo</div>'
-            f'<div class="performance-name">{html.escape(card["name"])}</div>'
-            f'<div class="percent-bar" style="--pct: {percentile:.2f}">'
-            '<div class="percent-fill"></div>'
-            "</div>"
-            "</div>"
-            "</div>"
-            f'<div class="metric-list">{metric_rows}</div>'
-            "</article>"
-        )
-
-    return (
-        '<section class="performance-section">'
-        '<div class="section-header">'
-        "<div>"
-        '<div class="player-kicker">Leitura de jogo</div>'
-        '<h2 class="section-title">Variaveis tecnicas</h2>'
-        "</div>"
-        '<p class="section-note">Comparativo com atletas da mesma funcao; indicadores de jogo abaixo</p>'
-        "</div>"
-        f'<div class="performance-grid">{"".join(card_html)}</div>'
-        "</section>"
-    )
-
-
 st.markdown(load_background_css(), unsafe_allow_html=True)
 
 with st.sidebar:
@@ -1905,52 +2150,75 @@ if not player_column or player_column not in data.columns:
     st.error("Não encontrei a coluna do jogador. Defina SUPABASE_PLAYER_COLUMN no .env.")
     st.stop()
 
+if SCORE_ID_COLUMN not in data.columns:
+    st.error("Nao encontrei a coluna jogador_id para relacionar bio e scores.")
+    st.stop()
+
 if selected_page == PAGE_PERFIL_FUNCAO:
     render_function_profile_page(data, team_column, player_column, position_column)
     st.stop()
 
-teams = normalized_options(data[team_column])
+score_profiles = load_score_profiles_by_player()
+score_player_ids = set(score_profiles)
+score_data = data[
+    data[SCORE_ID_COLUMN].map(lambda value: (storage_path_id(value) or "") in score_player_ids)
+].copy()
+profile_data = score_data if not score_data.empty else data
+teams = normalized_options(profile_data[team_column])
 
 st.markdown('<div class="filter-heading">Selecao</div>', unsafe_allow_html=True)
 team_filter, position_filter, player_filter = st.columns([1.05, 1.05, 1.35], gap="small")
 
 with team_filter:
-    selected_team = st.selectbox("Clube", teams, index=0 if teams else None)
+    selected_team = st.selectbox("Clube", teams, index=default_team_index(teams))
 
-team_data = data[data[team_column].astype(str).str.strip() == selected_team].copy()
+team_data = profile_data[profile_data[team_column].astype(str).str.strip() == selected_team].copy()
+team_data["_score_position_text"] = team_data[SCORE_ID_COLUMN].map(
+    lambda value: score_profiles.get(storage_path_id(value) or "", {}).get("position", "Sem posicao")
+)
 filtered_data = team_data
 
 with position_filter:
-    if position_column and position_column in team_data.columns:
-        position_options = ["Todas as posicoes", *normalized_options(team_data[position_column])]
+    score_position_data = team_data[team_data["_score_position_text"] != "Sem posicao"]
+    position_options = ["Todas as posicoes", *normalized_options(score_position_data["_score_position_text"])]
+    if len(position_options) > 1:
         selected_position = st.selectbox("Posicao principal", position_options, index=0)
         if selected_position != "Todas as posicoes":
-            filtered_data = team_data[
-                team_data[position_column].astype(str).str.strip() == selected_position
-            ].copy()
+            filtered_data = team_data[team_data["_score_position_text"] == selected_position].copy()
     else:
         st.selectbox("Posicao principal", ["Todas as posicoes"], index=0, disabled=True)
 
-players = normalized_options(filtered_data[player_column])
+player_options_data = filtered_data.dropna(subset=[SCORE_ID_COLUMN]).copy()
+player_options_data["_player_id_text"] = player_options_data[SCORE_ID_COLUMN].map(storage_path_id)
+player_options_data["_player_name_text"] = player_options_data[player_column].map(lambda value: clean_text(value))
+player_options_data = player_options_data.dropna(subset=["_player_id_text"])
+player_options_data = player_options_data.sort_values("_player_name_text").drop_duplicates("_player_id_text")
+player_labels = dict(zip(player_options_data["_player_id_text"], player_options_data["_player_name_text"]))
+player_options = list(player_labels.keys())
 
 with player_filter:
-    selected_player = st.selectbox("Atleta", players, index=0 if players else None)
+    selected_player_id = st.selectbox(
+        "Atleta",
+        player_options,
+        format_func=lambda value: player_labels.get(value, value),
+        index=0 if player_options else None,
+    )
+    selected_player = player_labels.get(selected_player_id, "") if selected_player_id else ""
 
-if not selected_team or not selected_player:
+if not selected_team or not selected_player_id:
     st.warning("Selecione um clube e um atleta.")
     st.stop()
 
 player_rows = filtered_data[
-    filtered_data[player_column].astype(str).str.strip() == selected_player
+    filtered_data[SCORE_ID_COLUMN].map(storage_path_id) == selected_player_id
 ].copy()
 player_row = player_rows.iloc[0]
 excluded_columns = {team_column, player_column}
 numeric_columns = numeric_columns_for_player(player_rows, excluded_columns)
 team_id = player_row["time_id"] if "time_id" in player_row.index else None
-player_id = player_row["jogador_id"] if "jogador_id" in player_row.index else None
+player_id = player_row[SCORE_ID_COLUMN] if SCORE_ID_COLUMN in player_row.index else None
 team_logo, team_logo_mime = load_team_logo(team_id)
 player_photo, player_photo_mime = load_player_photo(player_id)
-performance_cards = load_player_performance(player_id)
 team_logo_uri = image_data_uri(team_logo, team_logo_mime)
 player_photo_uri = image_data_uri(player_photo, player_photo_mime)
 team_logo_html = (
@@ -1964,6 +2232,7 @@ player_photo_html = (
     else '<div class="player-photo-placeholder">Foto indisponível</div>'
 )
 player_position = first_valid_text(
+    player_row["_score_position_text"] if "_score_position_text" in player_row.index else None,
     player_row["posicao_principal_detalhada"] if "posicao_principal_detalhada" in player_row.index else None,
     player_row["posicao_jogador"] if "posicao_jogador" in player_row.index else None,
 )
@@ -1973,12 +2242,7 @@ player_age = calculate_age(player_row["data_nascimento"]) if "data_nascimento" i
 player_birth_date = format_date(player_row["data_nascimento"]) if "data_nascimento" in player_row.index else "-"
 player_foot = row_value(player_row, "pe_preferido")
 player_contract = format_date(player_row["contrato_ate"]) if "contrato_ate" in player_row.index else "-"
-cluster_value = first_valid_text(
-    player_row["cluster"] if "cluster" in player_row.index else None,
-    player_row["persona"] if "persona" in player_row.index else None,
-    fallback="Sem cluster",
-)
-cluster_source = clean_text(player_position, "Grupo nao identificado")
+cluster_value = load_player_score_cluster(player_id)
 
 st.markdown(
     f"""
@@ -1999,40 +2263,37 @@ st.markdown(
         <div class="player-photo">{player_photo_html}</div>
         <div class="bio-grid">
             <div class="bio-card">
-                <div class="bio-label">Altura</div>
-                <div class="bio-value">{html.escape(player_height)}</div>
-            </div>
-            <div class="bio-card">
                 <div class="bio-label">Idade</div>
                 <div class="bio-value">{html.escape(player_age)}</div>
             </div>
             <div class="bio-card">
-                <div class="bio-label">Pé preferido</div>
-                <div class="bio-value">{html.escape(player_foot)}</div>
+                <div class="bio-label">Nascimento</div>
+                <div class="bio-value">{html.escape(player_birth_date)}</div>
             </div>
             <div class="bio-card">
                 <div class="bio-label">País</div>
                 <div class="bio-value">{html.escape(player_country)}</div>
             </div>
             <div class="bio-card">
-                <div class="bio-label">Contrato até</div>
-                <div class="bio-value">{html.escape(player_contract)}</div>
+                <div class="bio-label">Pé preferido</div>
+                <div class="bio-value">{html.escape(player_foot)}</div>
             </div>
             <div class="bio-card">
-                <div class="bio-label">Nascimento</div>
-                <div class="bio-value">{html.escape(player_birth_date)}</div>
+                <div class="bio-label">Altura</div>
+                <div class="bio-value">{html.escape(player_height)}</div>
+            </div>
+            <div class="bio-card">
+                <div class="bio-label">Contrato até</div>
+                <div class="bio-value">{html.escape(player_contract)}</div>
             </div>
         </div>
         <div class="cluster-panel">
             <div class="cluster-label">Funcao tecnica</div>
             <div class="cluster-value">{html.escape(cluster_value)}</div>
-            <div class="cluster-source">Funcao-base: {html.escape(cluster_source)}</div>
         </div>
     </section>
     """,
     unsafe_allow_html=True,
 )
 
-performance_html = render_performance_cards(performance_cards)
-if performance_html:
-    st.markdown(performance_html, unsafe_allow_html=True)
+render_score_profile_section(player_id, selected_player, cluster_value)

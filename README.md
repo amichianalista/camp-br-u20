@@ -18,16 +18,17 @@ Aplicacao Streamlit para scouting tecnico de jogadores de base. A visualizacao a
 2. A pagina `Perfil Individual` carrega as credenciais e configuracoes do `.env`.
 3. Busca a tabela principal de jogadores no Supabase.
 4. Identifica as colunas de time e jogador automaticamente, ou usa `SUPABASE_TEAM_COLUMN` e `SUPABASE_PLAYER_COLUMN`.
-5. Exibe filtros no topo da pagina para selecionar time, posicao principal e jogador.
+5. Exibe filtros no topo da pagina para selecionar time, posicao principal e jogador. A posicao principal vem das tabelas `fact.scores_players.*`, relacionada com a bio por `jogador_id`.
 6. Renderiza:
    - hero do time com escudo;
    - nome e posicao do jogador;
    - foto do jogador;
    - cards de bio, como altura, idade, pe preferido, pais, contrato e nascimento;
-   - cluster/persona vindo da base biografica quando disponivel;
-   - cards de scores tecnicos agrupados por tipo de acao em campo.
+   - cluster/persona vindo das tabelas de scores por posicao, relacionado por `jogador_id`;
+   - radar de estilo de jogo usando os percentis de score;
+   - tabela lateral com ranking, score bruto e percentil por categoria.
 
-A pagina `Perfil por Funcao` agrupa os atletas por funcao ampla e cluster/persona. Ao selecionar um cluster, exibe os jogadores e seus clubes logo abaixo da funcao escolhida; ao selecionar um jogador, carrega os scores por categoria a partir das tabelas `fact.scores_players.*` do Supabase.
+A pagina `Perfil por Funcao` agrupa os atletas por funcao ampla e persona vinda das tabelas `fact.scores_players.*`. Ao selecionar uma persona, exibe os jogadores e seus clubes logo abaixo da funcao escolhida; ao selecionar um jogador, carrega os scores por categoria a partir das mesmas tabelas.
 
 ## Variaveis de ambiente
 
@@ -55,7 +56,7 @@ Observacao: o `.env` real pode conter credenciais e nao deve ser versionado.
 
 A base biografica vem da tabela configurada em `SUPABASE_TABLE`. Se ela nao estiver definida, o app tenta nomes candidatos como `player_bio`, `bio_jogadores`, `jogadores_visualizacao`, `base_visualizacao`, `players`, entre outros.
 
-O cluster/persona do jogador fica na base biografica quando a coluna existir. Na estrutura atual, a tabela `player_bio` traz `persona`.
+O cluster/persona exibido na visualizacao nao vem da base biografica. Ele vem sempre da coluna `persona` das tabelas de scores por posicao, com relacionamento por `jogador_id`.
 
 A leitura tecnica usa as tabelas de scores por posicao:
 
@@ -65,7 +66,7 @@ A leitura tecnica usa as tabelas de scores por posicao:
 - `fact.scores_players.laterais`
 - `fact.scores_players.meias`
 
-Cada linha de score deve trazer `jogador_id`, `posicao`, `minutos_jogados`, `persona`, `ranking_percentil` e pares de colunas no formato `pontuacao_*` / `percentil_*`. O app encontra a tabela que contem o `jogador_id`, transforma cada par de colunas em uma categoria e exibe score e percentil. O formato antigo com `player_id`, `categoria` e `valor` continua aceito como fallback.
+Cada linha de score deve trazer `jogador_id`, `posicao`, `minutos_jogados`, `persona`, `ranking_percentil` e pares de colunas no formato `pontuacao_*` / `percentil_*`. O app encontra a tabela que contem o `jogador_id`, transforma cada par de colunas em uma categoria e exibe score e percentil.
 
 ## Como rodar
 
@@ -101,5 +102,5 @@ Se preferir usar Python diretamente:
 - O app depende de `jogador_id` para foto e performance.
 - O escudo do time usa `time_id`.
 - As imagens sao buscadas no Supabase Storage por padrao como `teams/{time_id}.png` e `players/{jogador_id}.{jpg,jpeg,png,webp}`.
-- O agrupamento por cluster usa a coluna `cluster` quando existir; se ela nao existir, usa `persona` como fallback.
+- O agrupamento por cluster/persona usa a coluna `persona` das tabelas `fact.scores_players.*`, relacionada por `jogador_id`.
 - Alguns textos no codigo podem aparecer com acentos quebrados por encoding antigo; isso nao impede a execucao, mas vale corrigir em uma limpeza futura.
