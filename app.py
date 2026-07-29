@@ -974,9 +974,9 @@ def load_background_css() -> str:
         .dialog-quick-facts {{
             display: grid;
             gap: 0.42rem;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             margin-top: 0.4rem;
-            max-width: 620px;
+            max-width: 820px;
         }}
 
         .dialog-cluster-highlight {{
@@ -2076,6 +2076,7 @@ def render_player_score_content(
     height_value = clean_text(player_info.get("height"), "-")
     age_value = clean_text(player_info.get("age"), "-")
     foot_value = clean_text(player_info.get("foot"), "-")
+    minutes_value = clean_text(player_info.get("minutes"), "-")
     player_id = player_info.get("player_id")
     player_photo, player_photo_mime = load_player_photo(player_id)
     player_photo_uri = image_data_uri(player_photo, player_photo_mime)
@@ -2088,6 +2089,7 @@ def render_player_score_content(
         ("Idade", age_value),
         ("Altura", height_value),
         ("Pe preferido", foot_value),
+        ("Minutos jogados", minutes_value),
     ]
     quick_facts_html = "".join(
         '<div class="dialog-bio-card">'
@@ -2147,6 +2149,10 @@ def render_player_score_content(
         """,
         unsafe_allow_html=True,
     )
+
+    raw_metrics_html = raw_metric_cards_html(load_player_raw_metric_rows(player_id))
+    if raw_metrics_html:
+        st.markdown(raw_metrics_html, unsafe_allow_html=True)
 
 
 if hasattr(st, "dialog"):
@@ -2217,6 +2223,11 @@ def render_selected_cluster_players(
                     "height": format_height(row["altura_cm"]) if "altura_cm" in row.index else "-",
                     "age": calculate_age(row["data_nascimento"]) if "data_nascimento" in row.index else "-",
                     "foot": row_value(row, "pe_preferido"),
+                    "minutes": (
+                        format_raw_metric_value(row["minutos_jogados"])
+                        if "minutos_jogados" in row.index
+                        else "-"
+                    ),
                     "country": row_value(row, "pais"),
                     "contract": format_date(row["contrato_ate"]) if "contrato_ate" in row.index else "-",
                     "birth_date": format_date(row["data_nascimento"]) if "data_nascimento" in row.index else "-",
