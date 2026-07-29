@@ -1757,7 +1757,7 @@ def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
             f'<div class="score-support-category">{html.escape(category["name"])}</div>'
             '<div class="score-support-metrics">'
             '<div>'
-            '<div class="score-support-label">Score bruto</div>'
+            '<div class="score-support-label">Score</div>'
             f'<div class="score-support-value">{html.escape(format_score(category.get("score")))}</div>'
             "</div>"
             '<div>'
@@ -1773,7 +1773,7 @@ def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
             '<article class="score-support-card">'
             '<div class="score-support-category">Sem categoria</div>'
             '<div class="score-support-metrics">'
-            '<div><div class="score-support-label">Score bruto</div><div class="score-support-value">-</div></div>'
+            '<div><div class="score-support-label">Score</div><div class="score-support-value">-</div></div>'
             '<div><div class="score-support-label">Percentil</div><div class="score-support-value">-</div></div>'
             "</div>"
             "</article>"
