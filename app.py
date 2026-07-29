@@ -32,6 +32,10 @@ SCORE_TABLES = [
     "fact.scores_players.laterais",
     "fact.scores_players.meias",
 ]
+RAW_METRIC_TABLES_BY_SCORE_TABLE = {
+    table: table.replace("fact.scores_players", "fact.raw_metrics_players")
+    for table in SCORE_TABLES
+}
 SCORE_ID_COLUMN = "jogador_id"
 SCORE_VALUE_PREFIX = "pontuacao_"
 SCORE_PERCENTILE_PREFIX = "percentil_"
@@ -41,6 +45,10 @@ SCORE_METADATA_COLUMNS = {
     "minutos_jogados",
     "persona",
     "ranking_percentil",
+}
+RAW_METRIC_METADATA_COLUMNS = {
+    "jogador_id",
+    "posicao",
 }
 IMAGE_MIME_TYPES = {
     "jpg": "image/jpeg",
@@ -489,10 +497,10 @@ def load_background_css() -> str:
             border-radius: 8px;
             box-shadow: 0 16px 38px rgba(0, 0, 0, 0.26);
             margin: 0 auto;
-            max-width: 900px;
-            min-height: 510px;
+            max-width: 640px;
+            min-height: 365px;
             overflow: hidden;
-            padding: 0.82rem;
+            padding: 0.5rem;
         }}
 
         .score-support-panel {{
@@ -541,6 +549,81 @@ def load_background_css() -> str:
             color: #f8fafc;
             font-weight: 900;
             line-height: 1.05;
+        }}
+
+        .raw-metrics-panel {{
+            background:
+                linear-gradient(145deg, rgba(8, 16, 22, 0.94), rgba(7, 13, 18, 0.74));
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 8px;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.22);
+            margin-top: 0.72rem;
+            overflow: hidden;
+            padding: 0.88rem;
+            position: relative;
+        }}
+
+        .raw-metrics-panel::before {{
+            background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
+            content: "";
+            height: 3px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }}
+
+        .raw-metrics-heading {{
+            align-items: baseline;
+            display: flex;
+            gap: 0.6rem;
+            justify-content: space-between;
+            margin-bottom: 0.72rem;
+        }}
+
+        .raw-metrics-title {{
+            color: #f8fafc;
+            font-size: 1.05rem;
+            font-weight: 900;
+            line-height: 1;
+            margin: 0;
+        }}
+
+        .raw-metrics-position {{
+            color: rgba(34, 197, 94, 0.95);
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }}
+
+        .raw-metrics-grid {{
+            display: grid;
+            gap: 0.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+        }}
+
+        .raw-metric-card {{
+            background: rgba(255, 255, 255, 0.052);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 8px;
+            min-height: 70px;
+            padding: 0.62rem;
+        }}
+
+        .raw-metric-label {{
+            color: rgba(203, 213, 225, 0.68);
+            font-size: 0.62rem;
+            font-weight: 900;
+            line-height: 1.12;
+            margin-bottom: 0.32rem;
+            text-transform: uppercase;
+        }}
+
+        .raw-metric-value {{
+            color: #f8fafc;
+            font-size: 1.12rem;
+            font-weight: 900;
+            line-height: 1;
         }}
 
         .section-header {{
@@ -1387,6 +1470,37 @@ def storage_path_id(value: object) -> str | None:
     return text[:-2] if text.endswith(".0") else text
 
 
+def normalized_player_id_for_query(player_id: object) -> object | None:
+    path_id = storage_path_id(player_id)
+    if not path_id:
+        return None
+
+    try:
+        return int(path_id)
+    except ValueError:
+        return path_id
+
+
+def fetch_player_rows_from_table(schema: str, table: str, player_id: object) -> list[dict]:
+    normalized_player_id = normalized_player_id_for_query(player_id)
+    if normalized_player_id is None:
+        return []
+
+    if get_database_url():
+        return fetch_rows_from_database(schema, table, SCORE_ID_COLUMN, normalized_player_id)
+
+    return (
+        get_supabase_client()
+        .schema(schema)
+        .table(table)
+        .select("*")
+        .eq(SCORE_ID_COLUMN, normalized_player_id)
+        .execute()
+        .data
+        or []
+    )
+
+
 @st.cache_data(ttl=3600, show_spinner=False)
 def load_team_logo(team_id: object) -> tuple[bytes | None, str]:
     path_id = storage_path_id(team_id)
@@ -1426,41 +1540,24 @@ def load_player_photo(player_id: object) -> tuple[bytes | None, str]:
 
 
 @st.cache_data(ttl=300, show_spinner=False)
-def load_player_score_rows(player_id: object) -> list[dict]:
-    path_id = storage_path_id(player_id)
-    if not path_id:
-        return []
-
-    try:
-        normalized_player_id = int(path_id)
-    except ValueError:
-        normalized_player_id = path_id
-
+def load_player_score_rows_with_table(player_id: object) -> tuple[list[dict], str | None]:
     schema = get_score_schema()
 
     for table in SCORE_TABLES:
         try:
-            if get_database_url():
-                rows = fetch_rows_from_database(schema, table, SCORE_ID_COLUMN, normalized_player_id)
-                if rows:
-                    return rows
-            else:
-                rows = (
-                    get_supabase_client()
-                    .schema(schema)
-                    .table(table)
-                    .select("*")
-                    .eq(SCORE_ID_COLUMN, normalized_player_id)
-                    .execute()
-                    .data
-                    or []
-                )
-                if rows:
-                    return rows
+            rows = fetch_player_rows_from_table(schema, table, player_id)
+            if rows:
+                return rows, table
         except Exception:  # noqa: BLE001
             continue
 
-    return []
+    return [], None
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def load_player_score_rows(player_id: object) -> list[dict]:
+    rows, _table = load_player_score_rows_with_table(player_id)
+    return rows
 
 
 def wide_score_categories(score_rows: list[dict]) -> list[dict]:
@@ -1586,6 +1683,70 @@ def load_player_score_details(player_id: object) -> list[dict]:
     return details[:12]
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def load_player_raw_metric_rows(player_id: object) -> list[dict]:
+    _score_rows, score_table = load_player_score_rows_with_table(player_id)
+    if not score_table:
+        return []
+
+    metric_table = RAW_METRIC_TABLES_BY_SCORE_TABLE.get(score_table)
+    if not metric_table:
+        return []
+
+    try:
+        return fetch_player_rows_from_table(get_score_schema(), metric_table, player_id)
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def format_raw_metric_value(value: object) -> str:
+    if pd.isna(value):
+        return "-"
+
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return clean_text(value)
+
+    if number.is_integer():
+        return f"{int(number):,}".replace(",", ".")
+
+    return f"{number:,.1f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def raw_metric_cards_html(metric_rows: list[dict]) -> str:
+    if not metric_rows:
+        return ""
+
+    row = metric_rows[0]
+    position = clean_text(row.get("posicao"), "Posicao nao informada")
+    cards_html = []
+
+    for column, value in row.items():
+        if column in RAW_METRIC_METADATA_COLUMNS or pd.isna(value):
+            continue
+
+        cards_html.append(
+            '<article class="raw-metric-card">'
+            f'<div class="raw-metric-label">{html.escape(humanize_key(column))}</div>'
+            f'<div class="raw-metric-value">{html.escape(format_raw_metric_value(value))}</div>'
+            "</article>"
+        )
+
+    if not cards_html:
+        return ""
+
+    return (
+        '<section class="raw-metrics-panel">'
+        '<div class="raw-metrics-heading">'
+        '<h2 class="raw-metrics-title">Metricas brutas</h2>'
+        f'<div class="raw-metrics-position">{html.escape(position)}</div>'
+        "</div>"
+        f'<div class="raw-metrics-grid">{"".join(cards_html)}</div>'
+        "</section>"
+    )
+
+
 def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
     cards_html = []
 
@@ -1658,14 +1819,14 @@ def score_radar_figure(categories: list[dict]) -> go.Figure:
         )
     )
     figure.update_layout(
-        height=500,
-        margin={"l": 96, "r": 96, "t": 24, "b": 42},
+        height=340,
+        margin={"l": 56, "r": 56, "t": 12, "b": 28},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
         polar={
             "bgcolor": "rgba(2, 6, 23, 0.18)",
-            "domain": {"x": [0.08, 0.92], "y": [0.04, 0.96]},
+            "domain": {"x": [0.08, 0.92], "y": [0.05, 0.95]},
             "radialaxis": {
                 "range": [0, 100],
                 "tickvals": [20, 40, 60, 80, 100],
@@ -1701,7 +1862,6 @@ def render_score_profile_section(player_id: object) -> None:
                         <div class="ranking-heading-value">{html.escape(ranking)}</div>
                     </div>
                 </div>
-                <p class="section-note">Percentis por categoria de score e valores brutos por categoria</p>
             </div>
         </section>
         """,
@@ -1712,12 +1872,17 @@ def render_score_profile_section(player_id: object) -> None:
         st.warning("Nao encontrei percentis de score para desenhar o radar desse jogador.")
         return
 
+    st.markdown(score_table_html(score_rows, categories), unsafe_allow_html=True)
     st.plotly_chart(
         score_radar_figure(categories),
         use_container_width=True,
         config={"displayModeBar": False, "responsive": True},
     )
-    st.markdown(score_table_html(score_rows, categories), unsafe_allow_html=True)
+    raw_metrics_html = raw_metric_cards_html(load_player_raw_metric_rows(player_id))
+    if raw_metrics_html:
+        st.markdown(raw_metrics_html, unsafe_allow_html=True)
+    else:
+        st.warning("Nao encontrei metricas brutas para a posicao desse jogador.")
 
 
 def numeric_columns_for_player(df: pd.DataFrame, excluded: set[str]) -> list[str]:
@@ -2226,7 +2391,11 @@ player_height = format_height(player_row["altura_cm"]) if "altura_cm" in player_
 player_age = calculate_age(player_row["data_nascimento"]) if "data_nascimento" in player_row.index else "-"
 player_birth_date = format_date(player_row["data_nascimento"]) if "data_nascimento" in player_row.index else "-"
 player_foot = row_value(player_row, "pe_preferido")
-player_contract = format_date(player_row["contrato_ate"]) if "contrato_ate" in player_row.index else "-"
+player_minutes = (
+    format_raw_metric_value(player_row["minutos_jogados"])
+    if "minutos_jogados" in player_row.index
+    else "-"
+)
 cluster_value = load_player_score_cluster(player_id)
 
 st.markdown(
@@ -2268,8 +2437,8 @@ st.markdown(
                 <div class="bio-value">{html.escape(player_height)}</div>
             </div>
             <div class="bio-card">
-                <div class="bio-label">Contrato até</div>
-                <div class="bio-value">{html.escape(player_contract)}</div>
+                <div class="bio-label">Minutos jogados</div>
+                <div class="bio-value">{html.escape(player_minutes)}</div>
             </div>
         </div>
         <div class="cluster-panel">
