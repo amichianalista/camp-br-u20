@@ -859,12 +859,14 @@ def load_background_css() -> str:
             width: 100%;
         }}
 
-        .cluster-close-button {{
+        .cluster-close-button,
+        .cluster-close-button:visited,
+        .cluster-close-button:focus {{
             align-items: center;
             background: rgba(2, 6, 23, 0.42);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 999px;
-            color: rgba(226, 232, 240, 0.72);
+            color: #f8fafc;
             display: flex;
             font-size: 1rem;
             font-weight: 800;
