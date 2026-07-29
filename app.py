@@ -1786,6 +1786,19 @@ def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
     )
 
 
+def radar_axis_scale(values: list[float]) -> tuple[int, list[int]]:
+    if not values:
+        return 100, [20, 40, 60, 80, 100]
+
+    max_value = max(values)
+    axis_max = int(np.ceil(max(max_value * 1.25, 20) / 10) * 10)
+    axis_max = min(100, max(20, axis_max))
+    step = max(5, int(np.ceil(axis_max / 5 / 5) * 5))
+    tickvals = list(range(step, axis_max + 1, step))
+
+    return axis_max, tickvals
+
+
 def score_radar_figure(categories: list[dict]) -> go.Figure:
     labels = []
     values = []
@@ -1801,6 +1814,8 @@ def score_radar_figure(categories: list[dict]) -> go.Figure:
 
         labels.append(category["name"])
         values.append(max(0, min(100, percentile_number)))
+
+    axis_max, tickvals = radar_axis_scale(values)
 
     if labels and values:
         labels = [*labels, labels[0]]
@@ -1829,8 +1844,8 @@ def score_radar_figure(categories: list[dict]) -> go.Figure:
             "bgcolor": "rgba(2, 6, 23, 0.18)",
             "domain": {"x": [0.16, 0.84], "y": [0.14, 0.86]},
             "radialaxis": {
-                "range": [0, 100],
-                "tickvals": [20, 40, 60, 80, 100],
+                "range": [0, axis_max],
+                "tickvals": tickvals,
                 "tickfont": {"color": "rgba(226, 232, 240, 0.62)", "size": 10},
                 "gridcolor": "rgba(255, 255, 255, 0.16)",
                 "linecolor": "rgba(255, 255, 255, 0.16)",
