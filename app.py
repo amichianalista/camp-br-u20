@@ -856,11 +856,26 @@ def load_background_css() -> str:
             min-height: 104px;
             padding: 1.02rem 3.4rem 1rem 0.8rem;
             position: relative;
-            width: 100%;
+            width: calc(100% + 3.1rem);
         }}
 
-        div[data-testid="stButton"] > button[title="Fechar cluster"],
-        div[data-testid="stButton"] > button[aria-label="Fechar cluster"] {{
+        .cluster-close-anchor {{
+            height: 0;
+            width: 0;
+        }}
+
+        div[data-testid="column"]:has(.cluster-close-anchor) {{
+            position: relative;
+            z-index: 5;
+        }}
+
+        div[data-testid="column"]:has(.cluster-close-anchor) div[data-testid="stButton"] {{
+            position: relative;
+            transform: translate(-2.35rem, 0.88rem);
+            width: 2rem;
+        }}
+
+        div[data-testid="column"]:has(.cluster-close-anchor) div[data-testid="stButton"] > button {{
             background: rgba(2, 6, 23, 0.42) !important;
             border: 1px solid rgba(255, 255, 255, 0.12) !important;
             border-radius: 999px;
@@ -869,14 +884,12 @@ def load_background_css() -> str:
             font-size: 1rem;
             font-weight: 800;
             height: 2rem;
-            margin-top: 0.95rem;
             min-height: 2rem;
             padding: 0;
             width: 2rem !important;
         }}
 
-        div[data-testid="stButton"] > button[title="Fechar cluster"]:hover,
-        div[data-testid="stButton"] > button[aria-label="Fechar cluster"]:hover {{
+        div[data-testid="column"]:has(.cluster-close-anchor) div[data-testid="stButton"] > button:hover {{
             background: rgba(34, 197, 94, 0.16) !important;
             border-color: rgba(34, 197, 94, 0.36) !important;
             color: #f8fafc !important;
@@ -2172,6 +2185,7 @@ def render_selected_cluster_players(
             unsafe_allow_html=True,
         )
     with close_column:
+        st.markdown('<div class="cluster-close-anchor"></div>', unsafe_allow_html=True)
         if st.button("×", key=f"close_cluster_{key_fragment(selected_function)}", help="Fechar cluster"):
             st.session_state.pop("perfil_funcao_cluster", None)
             st.rerun()
