@@ -864,6 +864,23 @@ def load_background_css() -> str:
             width: 0;
         }}
 
+        .cluster-close-visual {{
+            align-items: center;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.20);
+            border-radius: 999px;
+            color: #f8fafc;
+            display: flex;
+            font-size: 1rem;
+            font-weight: 800;
+            height: 2rem;
+            justify-content: center;
+            position: absolute;
+            right: 0.75rem;
+            top: 0.75rem;
+            width: 2rem;
+        }}
+
         div[data-testid="column"]:has(.cluster-close-anchor) {{
             position: relative;
             z-index: 5;
@@ -876,23 +893,25 @@ def load_background_css() -> str:
         }}
 
         div[data-testid="column"]:has(.cluster-close-anchor) div[data-testid="stButton"] > button {{
-            background: rgba(2, 6, 23, 0.42) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            background: transparent !important;
+            border-color: transparent !important;
             border-radius: 999px;
             box-shadow: none;
-            color: #f8fafc !important;
+            color: transparent !important;
             font-size: 1rem;
             font-weight: 800;
             height: 2rem;
             min-height: 2rem;
+            opacity: 0;
             padding: 0;
             width: 2rem !important;
         }}
 
         div[data-testid="column"]:has(.cluster-close-anchor) div[data-testid="stButton"] > button:hover {{
-            background: rgba(34, 197, 94, 0.16) !important;
-            border-color: rgba(34, 197, 94, 0.36) !important;
-            color: #f8fafc !important;
+            background: transparent !important;
+            border-color: transparent !important;
+            color: transparent !important;
+            opacity: 0;
             transform: none;
         }}
 
@@ -2178,6 +2197,7 @@ def render_selected_cluster_players(
         st.markdown(
             f"""
             <section class="selected-cluster">
+                <span class="cluster-close-visual">×</span>
                 <div class="player-kicker">Cluster selecionado</div>
                 <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
             </section>
