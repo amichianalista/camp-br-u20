@@ -48,6 +48,7 @@ SCORE_METADATA_COLUMNS = {
 }
 RAW_METRIC_METADATA_COLUMNS = {
     "jogador_id",
+    "minutos_jogados",
     "posicao",
 }
 IMAGE_MIME_TYPES = {
@@ -1739,7 +1740,7 @@ def raw_metric_cards_html(metric_rows: list[dict]) -> str:
     return (
         '<section class="raw-metrics-panel">'
         '<div class="raw-metrics-heading">'
-        '<h2 class="raw-metrics-title">Metricas brutas</h2>'
+        '<h2 class="raw-metrics-title">Números na temporada</h2>'
         f'<div class="raw-metrics-position">{html.escape(position)}</div>'
         "</div>"
         f'<div class="raw-metrics-grid">{"".join(cards_html)}</div>'
@@ -1819,14 +1820,14 @@ def score_radar_figure(categories: list[dict]) -> go.Figure:
         )
     )
     figure.update_layout(
-        height=340,
-        margin={"l": 56, "r": 56, "t": 12, "b": 28},
+        height=360,
+        margin={"l": 112, "r": 112, "t": 42, "b": 48},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
         polar={
             "bgcolor": "rgba(2, 6, 23, 0.18)",
-            "domain": {"x": [0.08, 0.92], "y": [0.05, 0.95]},
+            "domain": {"x": [0.16, 0.84], "y": [0.14, 0.86]},
             "radialaxis": {
                 "range": [0, 100],
                 "tickvals": [20, 40, 60, 80, 100],
@@ -1873,11 +1874,13 @@ def render_score_profile_section(player_id: object) -> None:
         return
 
     st.markdown(score_table_html(score_rows, categories), unsafe_allow_html=True)
-    st.plotly_chart(
-        score_radar_figure(categories),
-        use_container_width=True,
-        config={"displayModeBar": False, "responsive": True},
-    )
+    _left_spacer, radar_column, _right_spacer = st.columns([0.14, 0.72, 0.14])
+    with radar_column:
+        st.plotly_chart(
+            score_radar_figure(categories),
+            use_container_width=True,
+            config={"displayModeBar": False, "responsive": True},
+        )
     raw_metrics_html = raw_metric_cards_html(load_player_raw_metric_rows(player_id))
     if raw_metrics_html:
         st.markdown(raw_metrics_html, unsafe_allow_html=True)
