@@ -1441,6 +1441,11 @@ def humanize_key(value: str) -> str:
     return clean_text(value)
 
 
+def is_internal_id_field(column: str) -> bool:
+    normalized = column.strip().lower()
+    return normalized == "id" or normalized.startswith("id_") or normalized.endswith("_id")
+
+
 def score_category_name(column_suffix: str) -> str:
     return humanize_key(column_suffix)
 
@@ -1602,6 +1607,9 @@ def wide_score_categories(score_rows: list[dict]) -> list[dict]:
                 continue
 
             suffix = column.removeprefix(SCORE_VALUE_PREFIX)
+            if is_internal_id_field(suffix):
+                continue
+
             percentile = row.get(f"{SCORE_PERCENTILE_PREFIX}{suffix}")
             categories.append(
                 {
@@ -1617,6 +1625,10 @@ def old_score_categories(score_rows: list[dict]) -> list[dict]:
     grouped: dict[str, list[float]] = {}
     for row in score_rows:
         if pd.isna(row.get("valor")):
+            continue
+
+        raw_category = str(row.get("categoria", "")).strip()
+        if is_internal_id_field(raw_category):
             continue
 
         category = clean_text(row.get("categoria"), "Sem categoria")
@@ -1757,7 +1769,7 @@ def raw_metric_cards_html(metric_rows: list[dict]) -> str:
     cards_html = []
 
     for column, value in row.items():
-        if column in RAW_METRIC_METADATA_COLUMNS or pd.isna(value):
+        if column in RAW_METRIC_METADATA_COLUMNS or is_internal_id_field(column) or pd.isna(value):
             continue
 
         cards_html.append(
