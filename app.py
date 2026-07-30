@@ -1443,7 +1443,8 @@ def humanize_key(value: str) -> str:
 
 def is_internal_id_field(column: str) -> bool:
     normalized = column.strip().lower()
-    return normalized == "id" or normalized.startswith("id_") or normalized.endswith("_id")
+    parts = [part for part in normalized.split("_") if part]
+    return "id" in parts
 
 
 def score_category_name(column_suffix: str) -> str:
