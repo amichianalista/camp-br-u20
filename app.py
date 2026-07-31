@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import html
 import os
+import textwrap
 import unicodedata
 from datetime import date
 from pathlib import Path
@@ -373,6 +374,10 @@ def first_existing_column(columns: Iterable[str], candidates: Iterable[str]) -> 
         if candidate.lower() in normalized:
             return normalized[candidate.lower()]
     return None
+
+
+def render_html(markup: str) -> None:
+    st.markdown(textwrap.dedent(markup).strip(), unsafe_allow_html=True)
 
 
 def load_background_css() -> str:
@@ -3574,7 +3579,7 @@ else:
 
 
 def render_about_page() -> None:
-    st.markdown(
+    render_html(
         """
         <main class="about-page">
             <section class="about-hero">
@@ -3689,13 +3694,12 @@ def render_about_page() -> None:
                 </article>
             </section>
         </main>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
 def render_methodology_page() -> None:
-    st.markdown(
+    render_html(
         """
         <main class="methodology-page">
             <section class="methodology-hero">
@@ -3923,8 +3927,7 @@ def render_methodology_page() -> None:
                 </p>
             </section>
         </main>
-        """,
-        unsafe_allow_html=True,
+        """
     )
 
 
