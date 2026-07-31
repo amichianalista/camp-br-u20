@@ -21,6 +21,7 @@ from supabase import Client, create_client
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 BACKGROUND_PATH = ROOT_DIR / "assets" / "background.png"
+ABOUT_FUNNEL_BACKGROUND_PATH = ROOT_DIR / "assets" / "0002.png"
 TEAM_LOGO_BUCKET = "jogadores-br-sub-20"
 TEAM_LOGO_FOLDER = "teams"
 PLAYER_IMAGE_FOLDER = "players"
@@ -252,9 +253,10 @@ POSITION_COLUMN_CANDIDATES = [
     "player_position",
 ]
 
+PAGE_SOBRE = "Sobre"
 PAGE_PERFIL_INDIVIDUAL = "Perfil Individual"
 PAGE_PERFIL_FUNCAO = "Perfil por Função"
-APP_PAGES = [PAGE_PERFIL_INDIVIDUAL, PAGE_PERFIL_FUNCAO]
+APP_PAGES = [PAGE_SOBRE, PAGE_PERFIL_INDIVIDUAL, PAGE_PERFIL_FUNCAO]
 DEFAULT_TEAM_NAME = "América Mineiro U20"
 DEFAULT_TEAM_ALIASES = (
     DEFAULT_TEAM_NAME,
@@ -377,6 +379,18 @@ def load_background_css() -> str:
         return ""
 
     encoded = base64.b64encode(BACKGROUND_PATH.read_bytes()).decode("utf-8")
+    about_funnel_background = ""
+    if ABOUT_FUNNEL_BACKGROUND_PATH.exists():
+        about_encoded = base64.b64encode(ABOUT_FUNNEL_BACKGROUND_PATH.read_bytes()).decode("utf-8")
+        about_funnel_background = f'url("data:image/png;base64,{about_encoded}")'
+    about_funnel_background_layers = (
+        "linear-gradient(90deg, rgba(6, 13, 18, 0.94), rgba(6, 13, 18, 0.74) 45%, "
+        "rgba(6, 13, 18, 0.48)), "
+        "linear-gradient(180deg, rgba(6, 13, 18, 0.82), rgba(6, 13, 18, 0.68)), "
+        f"{about_funnel_background}"
+        if about_funnel_background
+        else "linear-gradient(135deg, rgba(8, 16, 22, 0.90), rgba(7, 13, 18, 0.66))"
+    )
     return f"""
     <style>
         .stApp {{
@@ -410,6 +424,247 @@ def load_background_css() -> str:
             font-weight: 900;
             margin: 0 0 0.55rem 0;
             text-transform: uppercase;
+        }}
+
+        .about-page {{
+            margin: 0 auto;
+            max-width: 1180px;
+            padding: 0.3rem 0 1.4rem 0;
+        }}
+
+        .about-hero {{
+            background:
+                linear-gradient(135deg, rgba(8, 16, 22, 0.96), rgba(7, 13, 18, 0.72)),
+                linear-gradient(90deg, rgba(34, 197, 94, 0.12), rgba(56, 189, 248, 0.10));
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 8px;
+            box-shadow: 0 22px 54px rgba(0, 0, 0, 0.30);
+            overflow: hidden;
+            padding: clamp(1.25rem, 4vw, 3.2rem);
+            position: relative;
+        }}
+
+        .about-hero::before {{
+            background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
+            content: "";
+            height: 4px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }}
+
+        .about-kicker {{
+            color: rgba(34, 197, 94, 0.96);
+            font-size: 0.78rem;
+            font-weight: 900;
+            letter-spacing: 0;
+            margin-bottom: 0.72rem;
+            text-transform: uppercase;
+        }}
+
+        .about-title {{
+            color: #f8fafc;
+            font-size: clamp(2.15rem, 6vw, 5.4rem);
+            font-weight: 950;
+            line-height: 0.95;
+            margin: 0;
+            max-width: 980px;
+            text-shadow: 0 18px 48px rgba(0, 0, 0, 0.46);
+        }}
+
+        .about-copy {{
+            color: rgba(248, 250, 252, 0.90);
+            font-size: clamp(1rem, 1.55vw, 1.22rem);
+            font-weight: 650;
+            line-height: 1.58;
+            margin: 1.2rem 0 0 0;
+            max-width: 920px;
+        }}
+
+        .about-copy strong {{
+            color: #ffffff;
+            font-weight: 950;
+        }}
+
+        .about-tag-row {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.52rem;
+            margin-top: 1.4rem;
+        }}
+
+        .about-tag {{
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 999px;
+            color: #f8fafc;
+            font-size: 0.76rem;
+            font-weight: 900;
+            padding: 0.42rem 0.62rem;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }}
+
+        .about-grid {{
+            display: grid;
+            gap: 0.72rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 0.78rem;
+        }}
+
+        .about-panel {{
+            background: rgba(8, 16, 22, 0.74);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            min-height: 132px;
+            padding: 0.9rem;
+        }}
+
+        .about-panel-label {{
+            color: rgba(250, 204, 21, 0.94);
+            font-size: 0.64rem;
+            font-weight: 900;
+            margin-bottom: 0.38rem;
+            text-transform: uppercase;
+        }}
+
+        .about-panel-title {{
+            color: #f8fafc;
+            font-size: 1.05rem;
+            font-weight: 950;
+            line-height: 1.05;
+            margin-bottom: 0.48rem;
+        }}
+
+        .about-panel-copy {{
+            color: rgba(248, 250, 252, 0.78);
+            font-size: 0.86rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin: 0;
+        }}
+
+        .about-funnel {{
+            background: {about_funnel_background_layers};
+            background-position: center;
+            background-size: cover;
+            border: 1px solid rgba(34, 197, 94, 0.30);
+            border-radius: 8px;
+            box-shadow: 0 22px 54px rgba(0, 0, 0, 0.32);
+            margin-top: 0.78rem;
+            overflow: hidden;
+            padding: clamp(1rem, 2.6vw, 1.55rem);
+            position: relative;
+        }}
+
+        .about-funnel::before {{
+            background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
+            content: "";
+            height: 3px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }}
+
+        .about-section-title {{
+            color: #f8fafc;
+            font-size: clamp(1.35rem, 2.4vw, 2.2rem);
+            font-weight: 950;
+            line-height: 1;
+            margin: 0;
+        }}
+
+        .about-section-copy {{
+            color: rgba(248, 250, 252, 0.92);
+            font-size: 0.98rem;
+            font-weight: 650;
+            line-height: 1.5;
+            margin: 0.55rem 0 0 0;
+            max-width: 920px;
+        }}
+
+        .about-section-copy strong {{
+            color: #ffffff;
+            font-weight: 950;
+        }}
+
+        .about-funnel-steps {{
+            display: grid;
+            gap: 0.62rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 0.9rem;
+        }}
+
+        .about-step {{
+            background: rgba(2, 6, 23, 0.62);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            padding: 0.76rem;
+        }}
+
+        .about-step-label {{
+            color: #facc15;
+            font-size: 0.66rem;
+            font-weight: 900;
+            margin-bottom: 0.28rem;
+            text-transform: uppercase;
+        }}
+
+        .about-step-number {{
+            color: #f8fafc;
+            font-size: clamp(1.7rem, 3vw, 2.45rem);
+            font-weight: 950;
+            line-height: 1;
+        }}
+
+        .about-step-copy {{
+            color: rgba(248, 250, 252, 0.88);
+            font-size: 0.82rem;
+            font-weight: 700;
+            line-height: 1.34;
+            margin: 0.42rem 0 0 0;
+        }}
+
+        .about-position-grid {{
+            display: grid;
+            gap: 0.5rem;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            margin-top: 0.88rem;
+        }}
+
+        .about-position-card {{
+            background:
+                linear-gradient(160deg, rgba(34, 197, 94, 0.18), rgba(56, 189, 248, 0.10)),
+                rgba(2, 6, 23, 0.66);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            min-height: 96px;
+            padding: 0.64rem;
+        }}
+
+        .about-position-icon {{
+            font-size: 1.24rem;
+            line-height: 1;
+            margin-bottom: 0.42rem;
+        }}
+
+        .about-position-name {{
+            color: rgba(248, 250, 252, 0.88);
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }}
+
+        .about-position-value {{
+            color: #f8fafc;
+            font-size: 1.38rem;
+            font-weight: 950;
+            line-height: 1;
+            margin-top: 0.24rem;
         }}
 
         [data-testid="stSidebar"] label p,
@@ -1671,6 +1926,15 @@ def load_background_css() -> str:
 
             .bio-grid {{
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }}
+
+            .about-grid {{
+                grid-template-columns: 1fr;
+            }}
+
+            .about-funnel-steps,
+            .about-position-grid {{
+                grid-template-columns: 1fr;
             }}
 
             .performance-grid {{
@@ -3129,6 +3393,127 @@ else:
         render_player_score_content(player_info)
 
 
+def render_about_page() -> None:
+    st.markdown(
+        """
+        <main class="about-page">
+            <section class="about-hero">
+                <div class="about-kicker">Scout Tecnico Base BR</div>
+                <h1 class="about-title">Da Estatística Bruta ao Perfil de Campo</h1>
+                <p class="about-copy">
+                    O objetivo deste projeto foi criar um modelo de
+                    <strong>Scouting e Análise de Mercado</strong> para mapear o DNA técnico
+                    dos jogadores que disputaram as duas maiores competições de base do país:
+                    o <strong>Brasileirão Sub-20</strong> e a <strong>Copinha</strong>.
+                </p>
+                <p class="about-copy">
+                    Em vez de olhar apenas para quem tem os números mais altos, nós limpamos
+                    os dados e cruzamos as informações para entender
+                    <strong>o estilo de jogo real</strong> de cada atleta.
+                </p>
+                <p class="about-copy">
+                    O resultado final mostra o encaixe tático do jogador dentro de campo,
+                    o que nós chamamos aqui de <strong>Personas</strong>.
+                </p>
+                <div class="about-tag-row">
+                    <span class="about-tag">Brasileirão Sub-20</span>
+                    <span class="about-tag">Copinha</span>
+                    <span class="about-tag">Scouting</span>
+                    <span class="about-tag">Personas</span>
+                    <span class="about-tag">Análise de Mercado</span>
+                </div>
+            </section>
+            <section class="about-funnel">
+                <h2 class="about-section-title">📊 O Funil de Captação (Amostragem)</h2>
+                <p class="about-section-copy">
+                    Coletamos os dados de todos os atletas inscritos no torneio. Porém, para
+                    o relatório ser justo e fiel, passamos os jogadores por um filtro de
+                    minutagem.
+                </p>
+                <div class="about-funnel-steps">
+                    <article class="about-step">
+                        <div class="about-step-label">Amostra Inicial</div>
+                        <div class="about-step-number">3.431</div>
+                        <p class="about-step-copy">registros de performance coletados.</p>
+                    </article>
+                    <article class="about-step">
+                        <div class="about-step-label">Linha de Corte</div>
+                        <div class="about-step-number">90 min</div>
+                        <p class="about-step-copy">
+                            Só entraram na análise atletas com no mínimo 90 minutos jogados
+                            na temporada.
+                        </p>
+                    </article>
+                    <article class="about-step">
+                        <div class="about-step-label">Base Final de Scouting</div>
+                        <div class="about-step-number">2.137</div>
+                        <p class="about-step-copy">jogadores avaliados e carimbados com um perfil.</p>
+                    </article>
+                </div>
+                <p class="about-section-copy">
+                    Esse corte evita distorções com quem entrou só no finalzinho de um jogo
+                    e preserva a leitura de desempenho real.
+                </p>
+                <div class="about-position-grid">
+                    <article class="about-position-card">
+                        <div class="about-position-icon">🧤</div>
+                        <div class="about-position-name">Goleiros</div>
+                        <div class="about-position-value">174</div>
+                    </article>
+                    <article class="about-position-card">
+                        <div class="about-position-icon">🛡️</div>
+                        <div class="about-position-name">Zagueiros</div>
+                        <div class="about-position-value">471</div>
+                    </article>
+                    <article class="about-position-card">
+                        <div class="about-position-icon">🏃‍♂️</div>
+                        <div class="about-position-name">Laterais</div>
+                        <div class="about-position-value">283</div>
+                    </article>
+                    <article class="about-position-card">
+                        <div class="about-position-icon">🧠</div>
+                        <div class="about-position-name">Meio-campistas</div>
+                        <div class="about-position-value">688</div>
+                    </article>
+                    <article class="about-position-card">
+                        <div class="about-position-icon">⚽</div>
+                        <div class="about-position-name">Atacantes</div>
+                        <div class="about-position-value">521</div>
+                    </article>
+                </div>
+            </section>
+            <section class="about-grid">
+                <article class="about-panel">
+                    <div class="about-panel-label">Base analisada</div>
+                    <div class="about-panel-title">Duas vitrines nacionais</div>
+                    <p class="about-panel-copy">
+                        O modelo parte das principais competições de formação para observar
+                        atletas em contextos competitivos e comparáveis.
+                    </p>
+                </article>
+                <article class="about-panel">
+                    <div class="about-panel-label">Método</div>
+                    <div class="about-panel-title">Dados tratados, contexto preservado</div>
+                    <p class="about-panel-copy">
+                        A leitura cruza estatísticas, posição, função e perfil de jogo para
+                        evitar conclusões presas ao volume bruto.
+                    </p>
+                </article>
+                <article class="about-panel">
+                    <div class="about-panel-label">Entrega</div>
+                    <div class="about-panel-title">Personas de campo</div>
+                    <p class="about-panel-copy">
+                        Cada atleta passa a ser visto pelo encaixe tático que oferece, e não
+                        apenas por rankings isolados.
+                    </p>
+                </article>
+            </section>
+        </main>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_selected_cluster_players(
     selected_rows: pd.DataFrame,
     selected_function: str,
@@ -3287,6 +3672,10 @@ st.markdown(load_background_css(), unsafe_allow_html=True)
 with st.sidebar:
     st.markdown('<div class="nav-title">Paginas</div>', unsafe_allow_html=True)
     selected_page = st.radio("Navegacao", APP_PAGES, label_visibility="collapsed")
+
+if selected_page == PAGE_SOBRE:
+    render_about_page()
+    st.stop()
 
 try:
     data, table_name = load_table_data()
