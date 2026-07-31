@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import base64
 import html
@@ -257,15 +257,15 @@ POSITION_COLUMN_CANDIDATES = [
 PAGE_SOBRE = "Sobre"
 PAGE_METODOLOGIA = "Metodologia"
 PAGE_PERFIL_INDIVIDUAL = "Perfil Individual"
-PAGE_PERFIL_FUNCAO = "Perfil por Função"
+PAGE_PERFIL_FUNCAO = "Perfil por FunÃ§Ã£o"
 APP_PAGES = [PAGE_SOBRE, PAGE_METODOLOGIA, PAGE_PERFIL_INDIVIDUAL, PAGE_PERFIL_FUNCAO]
-DEFAULT_TEAM_NAME = "América Mineiro U20"
+DEFAULT_TEAM_NAME = "AmÃ©rica Mineiro U20"
 DEFAULT_TEAM_ALIASES = (
     DEFAULT_TEAM_NAME,
     "America Mineiro U20",
-    "Am�rica Mineiro U20",
+    "Amï¿½rica Mineiro U20",
 )
-FUNCTION_ORDER = ["Goleiro", "Lateral", "Defensor", "Meia", "Atacante", "Outras funções"]
+FUNCTION_ORDER = ["Goleiro", "Lateral", "Defensor", "Meia", "Atacante", "Outras funÃ§Ãµes"]
 
 
 CLUSTER_DESCRIPTIONS = {
@@ -538,6 +538,28 @@ def load_background_css() -> str:
             max-width: 920px;
         }}
 
+        .about-copy-heading {{
+            color: #f8fafc;
+            font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+            font-weight: 950;
+            line-height: 1.15;
+            margin: 1rem 0 0.4rem 0;
+        }}
+
+        .about-copy-list {{
+            color: rgba(248, 250, 252, 0.90);
+            font-size: clamp(0.98rem, 1.4vw, 1.12rem);
+            font-weight: 650;
+            line-height: 1.5;
+            margin: 0.55rem 0 0 1.2rem;
+            padding: 0;
+        }}
+
+        .about-copy-list li {{
+            margin-top: 0.38rem;
+            padding-left: 0.2rem;
+        }}
+
         .about-copy strong {{
             color: #ffffff;
             font-weight: 950;
@@ -603,10 +625,7 @@ def load_background_css() -> str:
         }}
 
         .about-funnel {{
-            background: {about_funnel_background_layers};
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
+            background: rgba(8, 16, 22, 0.38);
             border: 1px solid rgba(34, 197, 94, 0.20);
             border-radius: 14px;
             box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
@@ -3085,7 +3104,7 @@ def raw_metric_cards_html(
     return (
         '<section class="raw-metrics-panel">'
         '<div class="raw-metrics-heading">'
-        '<h2 class="raw-metrics-title">Números na temporada</h2>'
+        '<h2 class="raw-metrics-title">NÃºmeros na temporada</h2>'
         f'<div class="raw-metrics-position">{html.escape(position)}</div>'
         "</div>"
         f'<div class="raw-score-group-grid">{"".join(cards_html)}</div>'
@@ -3505,7 +3524,7 @@ def function_label_from_position(value: object) -> str:
     if any(keyword in text for keyword in ("atacante", "ataque", "ponta", "centroavante", "forward", "winger", "striker")):
         return "Atacante"
 
-    return "Outras funções"
+    return "Outras funÃ§Ãµes"
 
 
 def player_position_text(row: pd.Series, position_column: str | None) -> str:
@@ -3750,22 +3769,6 @@ def render_player_score_content(
     )
 
 
-if hasattr(st, "dialog"):
-
-    @st.dialog("Scores do jogador", width="large")
-    def render_player_score_dialog(
-        player_info: dict,
-    ) -> None:
-        render_player_score_content(player_info)
-
-else:
-
-    def render_player_score_dialog(
-        player_info: dict,
-    ) -> None:
-        render_player_score_content(player_info)
-
-
 def render_about_page() -> None:
     render_html(
         """
@@ -3774,35 +3777,25 @@ def render_about_page() -> None:
                 <div class="about-hero-layout">
                     <div class="about-hero-copy">
                         <div class="about-kicker">Scout Tecnico Base BR</div>
-                <h1 class="about-title">Da Estatística Bruta ao Perfil de Campo</h1>
-                <p class="about-copy">
-                    O objetivo deste projeto foi criar um modelo de
-                    <strong>Scouting e Análise de Mercado</strong> para mapear o DNA técnico
-                    dos jogadores que disputaram as duas maiores competições de base do país:
-                    o <strong>Brasileirão Sub-20</strong> e a <strong>Copinha</strong>.
-                </p>
-                <p class="about-copy">
-                    Em vez de olhar apenas para quem tem os números mais altos, nós limpamos
-                    os dados e cruzamos as informações para entender
-                    <strong>o estilo de jogo real</strong> de cada atleta.
-                </p>
-                <p class="about-copy">
-                    O resultado final mostra o encaixe tático do jogador dentro de campo,
-                    o que nós chamamos aqui de <strong>Personas</strong>.
-                </p>
-                <div class="about-tag-row">
-                    <span class="about-tag">Brasileirão Sub-20</span>
-                    <span class="about-tag">Copinha</span>
-                    <span class="about-tag">Scouting</span>
-                    <span class="about-tag">Personas</span>
-                    <span class="about-tag">Análise de Mercado</span>
-                </div>
+                        <h1 class="about-title">Da Estatística Bruta ao Perfil de Campo</h1>
+                        <h2 class="about-copy-heading">? Sobre o Projeto</h2>
+                        <p class="about-copy">
+                            Este projeto foi desenvolvido para revolucionar o <strong>Scouting e a Análise de Mercado</strong>
+                            nas categorias de base do futebol brasileiro, mapeando o <strong>DNA técnico</strong>
+                            dos atletas que disputaram o Brasileirão Sub-20 e a Copinha.
+                        </p>
+                        <h2 class="about-copy-heading">?? Como funciona?</h2>
+                        <p class="about-copy"><strong>Além dos Números:</strong> Não olhamos apenas para estatísticas brutas. Limpamos e cruzamos os dados para decifrar o estilo de jogo real de cada atleta.</p>
+                        <p class="about-copy"><strong>DNA Tático:</strong> Identificamos o encaixe tático ideal do jogador dentro de campo.</p>
+                        <ul class="about-copy-list">
+                            <li><strong>Personas:</strong> O resultado final agrupa os atletas em perfis táticos específicos, facilitando a busca pelo jogador ideal.</li>
+                        </ul>
                     </div>
                     <aside class="about-hero-aside">
                         <article class="about-hero-stat">
                             <div class="about-hero-stat-label">Base analisada</div>
                             <div class="about-hero-stat-value">2 torneios</div>
-                            <div class="about-hero-stat-copy">Brasileirao Sub-20 + Copinha em uma leitura unica.</div>
+                            <div class="about-hero-stat-copy">Brasileirao Sub-20 + Copinha em uma leitura única.</div>
                         </article>
                         <article class="about-hero-stat">
                             <div class="about-hero-stat-label">Base final</div>
@@ -3812,13 +3805,13 @@ def render_about_page() -> None:
                         <article class="about-hero-stat">
                             <div class="about-hero-stat-label">Entrega</div>
                             <div class="about-hero-stat-value">Personas</div>
-                            <div class="about-hero-stat-copy">Cada jogador ganha um retrato tactico por funcao.</div>
+                            <div class="about-hero-stat-copy">Cada jogador ganha um retrato tático por função.</div>
                         </article>
                     </aside>
                 </div>
             </section>
             <section class="about-funnel">
-                <h2 class="about-section-title">📊 O Funil de Captação (Amostragem)</h2>
+                <h2 class="about-section-title">?? O Funil de Captação (Amostragem)</h2>
                 <p class="about-section-copy">
                     Coletamos os dados de todos os atletas inscritos no torneio. Porém, para
                     o relatório ser justo e fiel, passamos os jogadores por um filtro de
@@ -3850,27 +3843,27 @@ def render_about_page() -> None:
                 </p>
                 <div class="about-position-grid">
                     <article class="about-position-card">
-                        <div class="about-position-icon">🧤</div>
+                        <div class="about-position-icon">??</div>
                         <div class="about-position-name">Goleiros</div>
                         <div class="about-position-value">174</div>
                     </article>
                     <article class="about-position-card">
-                        <div class="about-position-icon">🛡️</div>
+                        <div class="about-position-icon">???</div>
                         <div class="about-position-name">Zagueiros</div>
                         <div class="about-position-value">471</div>
                     </article>
                     <article class="about-position-card">
-                        <div class="about-position-icon">🏃‍♂️</div>
+                        <div class="about-position-icon">?????</div>
                         <div class="about-position-name">Laterais</div>
                         <div class="about-position-value">283</div>
                     </article>
                     <article class="about-position-card">
-                        <div class="about-position-icon">🧠</div>
+                        <div class="about-position-icon">??</div>
                         <div class="about-position-name">Meio-campistas</div>
                         <div class="about-position-value">688</div>
                     </article>
                     <article class="about-position-card">
-                        <div class="about-position-icon">⚽</div>
+                        <div class="about-position-icon">?</div>
                         <div class="about-position-name">Atacantes</div>
                         <div class="about-position-value">521</div>
                     </article>
@@ -3913,10 +3906,10 @@ def render_methodology_page() -> None:
         <main class="methodology-page">
             <section class="methodology-hero">
                 <div class="about-kicker">Metodologia de Scouting</div>
-                <h1 class="methodology-title">🛠️ Como Extraímos, Transformamos e Processamos os Dados</h1>
+                <h1 class="methodology-title">ðŸ› ï¸ Como ExtraÃ­mos, Transformamos e Processamos os Dados</h1>
                 <p class="methodology-lead">
-                    Para transformar milhares de estatísticas brutas em perfis táticos de campo
-                    prontos para o Scouting, criamos um processo científico dividido em etapas
+                    Para transformar milhares de estatÃ­sticas brutas em perfis tÃ¡ticos de campo
+                    prontos para o Scouting, criamos um processo cientÃ­fico dividido em etapas
                     estruturadas (<strong>Stages</strong>). Cada fase cumpre um papel crucial
                     para garantir a qualidade final do dado.
                 </p>
@@ -3926,10 +3919,10 @@ def render_methodology_page() -> None:
                 <div class="methodology-stage-header">
                     <div class="methodology-stage-badge">1</div>
                     <div>
-                        <h2 class="methodology-stage-title">📐 Captação e Triagem Inicial</h2>
+                        <h2 class="methodology-stage-title">ðŸ“ CaptaÃ§Ã£o e Triagem Inicial</h2>
                         <p class="methodology-copy">
-                            O trabalho começa na coleta de dados brutos de todas as partidas do
-                            Brasileirão Sub-20 e da Copinha via API do SofaScore.
+                            O trabalho comeÃ§a na coleta de dados brutos de todas as partidas do
+                            BrasileirÃ£o Sub-20 e da Copinha via API do SofaScore.
                         </p>
                     </div>
                 </div>
@@ -3942,30 +3935,30 @@ def render_methodology_page() -> None:
                     <article class="methodology-card">
                         <div class="methodology-card-label">Mapeamento por Blocos</div>
                         <p class="methodology-card-copy">
-                            Coletamos todas as informações de <strong>Ataque, Defesa, Passe,
+                            Coletamos todas as informaÃ§Ãµes de <strong>Ataque, Defesa, Passe,
                             Goleiro e Outros</strong>.
                         </p>
                     </article>
                     <article class="methodology-card">
-                        <div class="methodology-card-label">Catálogo de Métricas</div>
+                        <div class="methodology-card-label">CatÃ¡logo de MÃ©tricas</div>
                         <p class="methodology-card-copy">
-                            Criamos uma matriz de inteligência com <strong>73 métricas homologadas</strong>
-                            espalhadas por <strong>16 categorias técnicas</strong>.
+                            Criamos uma matriz de inteligÃªncia com <strong>73 mÃ©tricas homologadas</strong>
+                            espalhadas por <strong>16 categorias tÃ©cnicas</strong>.
                         </p>
                     </article>
                     <article class="methodology-card">
-                        <div class="methodology-card-label">Limpeza de Ruídos</div>
+                        <div class="methodology-card-label">Limpeza de RuÃ­dos</div>
                         <p class="methodology-card-copy">
-                            Descartamos dados 100% nulos e porcentagens que não faziam sentido
-                            para certas posições.
+                            Descartamos dados 100% nulos e porcentagens que nÃ£o faziam sentido
+                            para certas posiÃ§Ãµes.
                         </p>
                     </article>
                 </div>
                 <p class="methodology-copy">
-                    <strong>Fusão de Campeonatos:</strong> unificamos os dados dos dois torneios
-                    pelo ID único de cada atleta. Se um jogador atuou na Copinha por um clube e
+                    <strong>FusÃ£o de Campeonatos:</strong> unificamos os dados dos dois torneios
+                    pelo ID Ãºnico de cada atleta. Se um jogador atuou na Copinha por um clube e
                     no Brasileiro Sub-20 por outro, o pipeline somou os minutos e recalculou as
-                    médias de forma global.
+                    mÃ©dias de forma global.
                 </p>
             </section>
 
@@ -3973,9 +3966,9 @@ def render_methodology_page() -> None:
                 <div class="methodology-stage-header">
                     <div class="methodology-stage-badge">2</div>
                     <div>
-                        <h2 class="methodology-stage-title">⏳ Filtro de Minutagem e Filtros de Campo</h2>
+                        <h2 class="methodology-stage-title">â³ Filtro de Minutagem e Filtros de Campo</h2>
                         <p class="methodology-copy">
-                            Nem todo dado de futebol é útil. Para o modelo ser confiável,
+                            Nem todo dado de futebol Ã© Ãºtil. Para o modelo ser confiÃ¡vel,
                             aplicamos uma linha de corte realista de mercado.
                         </p>
                     </div>
@@ -3994,45 +3987,45 @@ def render_methodology_page() -> None:
                         </p>
                     </article>
                     <article class="methodology-card">
-                        <div class="methodology-card-label">Refinamento por Posição</div>
+                        <div class="methodology-card-label">Refinamento por PosiÃ§Ã£o</div>
                         <p class="methodology-card-copy">
-                            Mantivemos apenas métricas de alta relevância prática, criando uma
-                            assinatura estatística ideal para cada função.
+                            Mantivemos apenas mÃ©tricas de alta relevÃ¢ncia prÃ¡tica, criando uma
+                            assinatura estatÃ­stica ideal para cada funÃ§Ã£o.
                         </p>
                     </article>
                     <article class="methodology-card">
                         <div class="methodology-card-label">Resultado</div>
                         <p class="methodology-card-copy">
-                            A base final ficou mais justa, comparável e preparada para leitura
-                            técnica por posição.
+                            A base final ficou mais justa, comparÃ¡vel e preparada para leitura
+                            tÃ©cnica por posiÃ§Ã£o.
                         </p>
                     </article>
                 </div>
                 <div class="methodology-position-grid">
                     <article class="methodology-position-card">
-                        <div class="methodology-position-name">🧤 Goleiro</div>
+                        <div class="methodology-position-name">ðŸ§¤ Goleiro</div>
                         <div class="methodology-position-value">10</div>
-                        <div class="methodology-position-note">métricas mantidas</div>
+                        <div class="methodology-position-note">mÃ©tricas mantidas</div>
                     </article>
                     <article class="methodology-position-card">
-                        <div class="methodology-position-name">🛡️ Defensor</div>
+                        <div class="methodology-position-name">ðŸ›¡ï¸ Defensor</div>
                         <div class="methodology-position-value">12</div>
-                        <div class="methodology-position-note">métricas mantidas</div>
+                        <div class="methodology-position-note">mÃ©tricas mantidas</div>
                     </article>
                     <article class="methodology-position-card">
-                        <div class="methodology-position-name">🏃‍♂️ Lateral</div>
+                        <div class="methodology-position-name">ðŸƒâ€â™‚ï¸ Lateral</div>
                         <div class="methodology-position-value">17</div>
-                        <div class="methodology-position-note">métricas mantidas</div>
+                        <div class="methodology-position-note">mÃ©tricas mantidas</div>
                     </article>
                     <article class="methodology-position-card">
-                        <div class="methodology-position-name">🧠 Meio-campo</div>
+                        <div class="methodology-position-name">ðŸ§  Meio-campo</div>
                         <div class="methodology-position-value">19</div>
-                        <div class="methodology-position-note">métricas mantidas</div>
+                        <div class="methodology-position-note">mÃ©tricas mantidas</div>
                     </article>
                     <article class="methodology-position-card">
-                        <div class="methodology-position-name">⚽ Atacante</div>
+                        <div class="methodology-position-name">âš½ Atacante</div>
                         <div class="methodology-position-value">15</div>
-                        <div class="methodology-position-note">métricas mantidas</div>
+                        <div class="methodology-position-note">mÃ©tricas mantidas</div>
                     </article>
                 </div>
             </section>
@@ -4041,10 +4034,10 @@ def render_methodology_page() -> None:
                 <div class="methodology-stage-header">
                     <div class="methodology-stage-badge">3</div>
                     <div>
-                        <h2 class="methodology-stage-title">⚖️ Criação de Scores de Eficiência</h2>
+                        <h2 class="methodology-stage-title">âš–ï¸ CriaÃ§Ã£o de Scores de EficiÃªncia</h2>
                         <p class="methodology-copy">
-                            Não medimos apenas o volume, como quantidade de desarmes, mas sim a
-                            <strong> eficiência e o impacto técnico</strong> do jogador.
+                            NÃ£o medimos apenas o volume, como quantidade de desarmes, mas sim a
+                            <strong> eficiÃªncia e o impacto tÃ©cnico</strong> do jogador.
                         </p>
                     </div>
                 </div>
@@ -4055,17 +4048,17 @@ def render_methodology_page() -> None:
                 </div>
                 <div class="methodology-card-grid">
                     <article class="methodology-card">
-                        <div class="methodology-card-label">Padronização por 90 Minutos</div>
+                        <div class="methodology-card-label">PadronizaÃ§Ã£o por 90 Minutos</div>
                         <p class="methodology-card-copy">
-                            Métricas de volume foram calculadas proporcionalmente ao tempo em
+                            MÃ©tricas de volume foram calculadas proporcionalmente ao tempo em
                             campo, permitindo comparar quem jogou 2 ou 10 partidas.
                         </p>
                     </article>
                     <article class="methodology-card">
-                        <div class="methodology-card-label">Categorias Técnicas</div>
+                        <div class="methodology-card-label">Categorias TÃ©cnicas</div>
                         <p class="methodology-card-copy">
-                            Criamos categorias específicas por posição, como <strong>Saída Aérea</strong>,
-                            <strong> Construção de Jogo</strong> e <strong>Quebrar Linhas</strong>.
+                            Criamos categorias especÃ­ficas por posiÃ§Ã£o, como <strong>SaÃ­da AÃ©rea</strong>,
+                            <strong> ConstruÃ§Ã£o de Jogo</strong> e <strong>Quebrar Linhas</strong>.
                         </p>
                     </article>
                     <article class="methodology-card">
@@ -4082,10 +4075,10 @@ def render_methodology_page() -> None:
                 <div class="methodology-stage-header">
                     <div class="methodology-stage-badge">4</div>
                     <div>
-                        <h2 class="methodology-stage-title">📏 Equalização de Contexto</h2>
+                        <h2 class="methodology-stage-title">ðŸ“ EqualizaÃ§Ã£o de Contexto</h2>
                         <p class="methodology-copy">
                             Para que o algoritmo funcione perfeitamente, as notas dos jogadores
-                            precisam estar na mesma régua.
+                            precisam estar na mesma rÃ©gua.
                         </p>
                     </div>
                 </div>
@@ -4095,11 +4088,11 @@ def render_methodology_page() -> None:
                     <span class="methodology-highlight">mesma regua</span>
                 </div>
                 <p class="methodology-copy">
-                    <strong>Normalização Posicional (Z-Score):</strong> através do modelo estatístico
-                    <strong> StandardScaler</strong>, transformamos os scores técnicos de cada atleta
-                    em relação à média da sua própria posição. Isso significa que o modelo não
+                    <strong>NormalizaÃ§Ã£o Posicional (Z-Score):</strong> atravÃ©s do modelo estatÃ­stico
+                    <strong> StandardScaler</strong>, transformamos os scores tÃ©cnicos de cada atleta
+                    em relaÃ§Ã£o Ã  mÃ©dia da sua prÃ³pria posiÃ§Ã£o. Isso significa que o modelo nÃ£o
                     compara a quantidade de dribles de um ponta com a de um zagueiro; cada jogador
-                    compete apenas dentro do seu próprio universo posicional.
+                    compete apenas dentro do seu prÃ³prio universo posicional.
                 </p>
             </section>
 
@@ -4107,11 +4100,11 @@ def render_methodology_page() -> None:
                 <div class="methodology-stage-header">
                     <div class="methodology-stage-badge">5</div>
                     <div>
-                        <h2 class="methodology-stage-title">🧠 Clusterização e Definição das Personas</h2>
+                        <h2 class="methodology-stage-title">ðŸ§  ClusterizaÃ§Ã£o e DefiniÃ§Ã£o das Personas</h2>
                         <p class="methodology-copy">
                             Com os dados limpos, padronizados e contextualizados, aplicamos o
                             algoritmo de Machine Learning <strong>K-Means</strong> para agrupar
-                            os jogadores por semelhança de estilo.
+                            os jogadores por semelhanÃ§a de estilo.
                         </p>
                     </div>
                 </div>
@@ -4121,41 +4114,41 @@ def render_methodology_page() -> None:
                     <span class="methodology-highlight">personas</span>
                 </div>
                 <p class="methodology-copy">
-                    <strong>Critério Matemático da Curvatura Máxima:</strong> para definir em
-                    quantos grupos dividir os atletas de cada posição, analisamos a curva de
-                    inércia do modelo. O cálculo de <strong>Max Curvature</strong> sugeriu
-                    matematicamente as seguintes divisões ideais de mercado.
+                    <strong>CritÃ©rio MatemÃ¡tico da Curvatura MÃ¡xima:</strong> para definir em
+                    quantos grupos dividir os atletas de cada posiÃ§Ã£o, analisamos a curva de
+                    inÃ©rcia do modelo. O cÃ¡lculo de <strong>Max Curvature</strong> sugeriu
+                    matematicamente as seguintes divisÃµes ideais de mercado.
                 </p>
                 <div class="methodology-position-grid">
                     <article class="methodology-position-card">
-                        <div class="methodology-position-name">🧤 Goleiros</div>
+                        <div class="methodology-position-name">ðŸ§¤ Goleiros</div>
                         <div class="methodology-position-value">4 perfis</div>
                         <div class="methodology-position-note">Silhouette Score: 0.30</div>
                     </article>
                     <article class="methodology-position-card">
-                        <div class="methodology-position-name">🛡️ Defensores</div>
+                        <div class="methodology-position-name">ðŸ›¡ï¸ Defensores</div>
                         <div class="methodology-position-value">3 perfis</div>
                         <div class="methodology-position-note">Silhouette Score: 0.30</div>
                     </article>
                     <article class="methodology-position-card">
-                        <div class="methodology-position-name">🏃‍♂️ Laterais</div>
+                        <div class="methodology-position-name">ðŸƒâ€â™‚ï¸ Laterais</div>
                         <div class="methodology-position-value">4 perfis</div>
                         <div class="methodology-position-note">Silhouette Score: 0.29</div>
                     </article>
                     <article class="methodology-position-card">
-                        <div class="methodology-position-name">🧠 Meio-campistas</div>
+                        <div class="methodology-position-name">ðŸ§  Meio-campistas</div>
                         <div class="methodology-position-value">4 perfis</div>
                         <div class="methodology-position-note">Silhouette Score: 0.23</div>
                     </article>
                     <article class="methodology-position-card">
-                        <div class="methodology-position-name">⚽ Atacantes</div>
+                        <div class="methodology-position-name">âš½ Atacantes</div>
                         <div class="methodology-position-value">5 perfis</div>
                         <div class="methodology-position-note">Silhouette Score: 0.20</div>
                     </article>
                 </div>
                 <p class="methodology-copy">
-                    <strong>A Tradução para o Futebol:</strong> por fim, cruzamos a média estatística
-                    de cada grupo com os jargões do campo, batizando cada cluster com sua respectiva
+                    <strong>A TraduÃ§Ã£o para o Futebol:</strong> por fim, cruzamos a mÃ©dia estatÃ­stica
+                    de cada grupo com os jargÃµes do campo, batizando cada cluster com sua respectiva
                     <strong> Persona do Futebol</strong>, como <strong>Box to Box</strong>,
                     <strong> Falso 9</strong> e <strong>Zagueiro Construtor</strong>.
                 </p>
@@ -4183,7 +4176,7 @@ def render_selected_cluster_players(
         st.markdown(
             f"""
             <section class="selected-cluster">
-                <span class="cluster-close-visual">×</span>
+                <span class="cluster-close-visual">Ã—</span>
                 <div class="player-kicker">Cluster selecionado</div>
                 <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
                 {cluster_description_html}
@@ -4193,7 +4186,7 @@ def render_selected_cluster_players(
         )
     with close_column:
         st.markdown('<div class="cluster-close-anchor"></div>', unsafe_allow_html=True)
-        if st.button("×", key=f"close_cluster_{key_fragment(selected_function)}", help="Fechar cluster"):
+        if st.button("Ã—", key=f"close_cluster_{key_fragment(selected_function)}", help="Fechar cluster"):
             st.session_state.pop("perfil_funcao_cluster", None)
             st.rerun()
 
@@ -4256,7 +4249,7 @@ def render_function_profile_page(
     st.markdown(
         """
         <section class="function-hero">
-            <div class="main-title">Perfil por Função</div>
+            <div class="main-title">Perfil por FunÃ§Ã£o</div>
         </section>
         """,
         unsafe_allow_html=True,
@@ -4352,11 +4345,11 @@ position_column = get_env_value("SUPABASE_POSITION_COLUMN") or first_existing_co
 )
 
 if not team_column or team_column not in data.columns:
-    st.error("Não encontrei a coluna do time. Defina SUPABASE_TEAM_COLUMN no .env.")
+    st.error("NÃ£o encontrei a coluna do time. Defina SUPABASE_TEAM_COLUMN no .env.")
     st.stop()
 
 if not player_column or player_column not in data.columns:
-    st.error("Não encontrei a coluna do jogador. Defina SUPABASE_PLAYER_COLUMN no .env.")
+    st.error("NÃ£o encontrei a coluna do jogador. Defina SUPABASE_PLAYER_COLUMN no .env.")
     st.stop()
 
 if SCORE_ID_COLUMN not in data.columns:
@@ -4438,7 +4431,7 @@ team_logo_html = (
 player_photo_html = (
     f'<img src="{player_photo_uri}" alt="Foto {html.escape(selected_player)}">'
     if player_photo_uri
-    else '<div class="player-photo-placeholder">Foto indisponível</div>'
+    else '<div class="player-photo-placeholder">Foto indisponÃ­vel</div>'
 )
 player_position = first_valid_text(
     player_row["_score_position_text"] if "_score_position_text" in player_row.index else None,
@@ -4493,11 +4486,11 @@ st.markdown(
                 <div class="bio-value">{html.escape(player_birth_date)}</div>
             </div>
             <div class="bio-card">
-                <div class="bio-label">País</div>
+                <div class="bio-label">PaÃ­s</div>
                 <div class="bio-value">{html.escape(player_country)}</div>
             </div>
             <div class="bio-card">
-                <div class="bio-label">Pé preferido</div>
+                <div class="bio-label">PÃ© preferido</div>
                 <div class="bio-value">{html.escape(player_foot)}</div>
             </div>
             <div class="bio-card">
@@ -4520,3 +4513,5 @@ st.markdown(
 )
 
 render_score_profile_section(player_id)
+
+
