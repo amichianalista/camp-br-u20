@@ -254,9 +254,10 @@ POSITION_COLUMN_CANDIDATES = [
 ]
 
 PAGE_SOBRE = "Sobre"
+PAGE_METODOLOGIA = "Metodologia"
 PAGE_PERFIL_INDIVIDUAL = "Perfil Individual"
 PAGE_PERFIL_FUNCAO = "Perfil por Função"
-APP_PAGES = [PAGE_SOBRE, PAGE_PERFIL_INDIVIDUAL, PAGE_PERFIL_FUNCAO]
+APP_PAGES = [PAGE_SOBRE, PAGE_METODOLOGIA, PAGE_PERFIL_INDIVIDUAL, PAGE_PERFIL_FUNCAO]
 DEFAULT_TEAM_NAME = "América Mineiro U20"
 DEFAULT_TEAM_ALIASES = (
     DEFAULT_TEAM_NAME,
@@ -664,6 +665,179 @@ def load_background_css() -> str:
             font-size: 1.38rem;
             font-weight: 950;
             line-height: 1;
+            margin-top: 0.24rem;
+        }}
+
+        .methodology-page {{
+            margin: 0 auto;
+            max-width: 1180px;
+            padding: 0.3rem 0 1.4rem 0;
+        }}
+
+        .methodology-hero,
+        .methodology-stage {{
+            background: {about_funnel_background_layers};
+            background-position: center;
+            background-size: cover;
+            border: 1px solid rgba(34, 197, 94, 0.28);
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.30);
+            overflow: hidden;
+            position: relative;
+        }}
+
+        .methodology-hero {{
+            padding: clamp(1.25rem, 4vw, 3.2rem);
+        }}
+
+        .methodology-hero::before,
+        .methodology-stage::before {{
+            background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
+            content: "";
+            height: 4px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }}
+
+        .methodology-title {{
+            color: #f8fafc;
+            font-size: clamp(2rem, 5vw, 4.4rem);
+            font-weight: 950;
+            line-height: 0.98;
+            margin: 0;
+            max-width: 1000px;
+            text-shadow: 0 18px 48px rgba(0, 0, 0, 0.48);
+        }}
+
+        .methodology-lead {{
+            color: rgba(248, 250, 252, 0.92);
+            font-size: clamp(1rem, 1.55vw, 1.2rem);
+            font-weight: 650;
+            line-height: 1.58;
+            margin: 1.05rem 0 0 0;
+            max-width: 940px;
+        }}
+
+        .methodology-lead strong,
+        .methodology-copy strong {{
+            color: #ffffff;
+            font-weight: 950;
+        }}
+
+        .methodology-stage {{
+            margin-top: 0.78rem;
+            padding: clamp(1rem, 2.4vw, 1.45rem);
+        }}
+
+        .methodology-stage-header {{
+            align-items: start;
+            display: grid;
+            gap: 0.8rem;
+            grid-template-columns: auto minmax(0, 1fr);
+            margin-bottom: 0.76rem;
+        }}
+
+        .methodology-stage-badge {{
+            align-items: center;
+            background: rgba(250, 204, 21, 0.14);
+            border: 1px solid rgba(250, 204, 21, 0.34);
+            border-radius: 8px;
+            color: #facc15;
+            display: flex;
+            font-size: 1.15rem;
+            font-weight: 950;
+            height: 2.55rem;
+            justify-content: center;
+            width: 2.55rem;
+        }}
+
+        .methodology-stage-title {{
+            color: #f8fafc;
+            font-size: clamp(1.18rem, 2vw, 1.8rem);
+            font-weight: 950;
+            line-height: 1.05;
+            margin: 0;
+        }}
+
+        .methodology-copy {{
+            color: rgba(248, 250, 252, 0.88);
+            font-size: 0.96rem;
+            font-weight: 650;
+            line-height: 1.52;
+            margin: 0.54rem 0 0 0;
+            max-width: 980px;
+        }}
+
+        .methodology-card-grid {{
+            display: grid;
+            gap: 0.55rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 0.82rem;
+        }}
+
+        .methodology-card {{
+            background: rgba(2, 6, 23, 0.62);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            min-height: 116px;
+            padding: 0.72rem;
+        }}
+
+        .methodology-card-label {{
+            color: #facc15;
+            font-size: 0.64rem;
+            font-weight: 950;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+        }}
+
+        .methodology-card-copy {{
+            color: rgba(248, 250, 252, 0.88);
+            font-size: 0.84rem;
+            font-weight: 700;
+            line-height: 1.38;
+            margin: 0;
+        }}
+
+        .methodology-position-grid {{
+            display: grid;
+            gap: 0.5rem;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            margin-top: 0.82rem;
+        }}
+
+        .methodology-position-card {{
+            background:
+                linear-gradient(160deg, rgba(34, 197, 94, 0.18), rgba(56, 189, 248, 0.10)),
+                rgba(2, 6, 23, 0.66);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            min-height: 92px;
+            padding: 0.62rem;
+        }}
+
+        .methodology-position-name {{
+            color: rgba(248, 250, 252, 0.84);
+            font-size: 0.68rem;
+            font-weight: 950;
+            text-transform: uppercase;
+        }}
+
+        .methodology-position-value {{
+            color: #f8fafc;
+            font-size: 1.32rem;
+            font-weight: 950;
+            line-height: 1;
+            margin-top: 0.28rem;
+        }}
+
+        .methodology-position-note {{
+            color: rgba(248, 250, 252, 0.70);
+            font-size: 0.72rem;
+            font-weight: 700;
             margin-top: 0.24rem;
         }}
 
@@ -1934,6 +2108,12 @@ def load_background_css() -> str:
 
             .about-funnel-steps,
             .about-position-grid {{
+                grid-template-columns: 1fr;
+            }}
+
+            .methodology-card-grid,
+            .methodology-position-grid,
+            .methodology-stage-header {{
                 grid-template-columns: 1fr;
             }}
 
@@ -3514,6 +3694,240 @@ def render_about_page() -> None:
     )
 
 
+def render_methodology_page() -> None:
+    st.markdown(
+        """
+        <main class="methodology-page">
+            <section class="methodology-hero">
+                <div class="about-kicker">Metodologia de Scouting</div>
+                <h1 class="methodology-title">🛠️ Como Extraímos, Transformamos e Processamos os Dados</h1>
+                <p class="methodology-lead">
+                    Para transformar milhares de estatísticas brutas em perfis táticos de campo
+                    prontos para o Scouting, criamos um processo científico dividido em etapas
+                    estruturadas (<strong>Stages</strong>). Cada fase cumpre um papel crucial
+                    para garantir a qualidade final do dado.
+                </p>
+            </section>
+
+            <section class="methodology-stage">
+                <div class="methodology-stage-header">
+                    <div class="methodology-stage-badge">1</div>
+                    <div>
+                        <h2 class="methodology-stage-title">📐 Captação e Triagem Inicial</h2>
+                        <p class="methodology-copy">
+                            O trabalho começa na coleta de dados brutos de todas as partidas do
+                            Brasileirão Sub-20 e da Copinha via API do SofaScore.
+                        </p>
+                    </div>
+                </div>
+                <div class="methodology-card-grid">
+                    <article class="methodology-card">
+                        <div class="methodology-card-label">Mapeamento por Blocos</div>
+                        <p class="methodology-card-copy">
+                            Coletamos todas as informações de <strong>Ataque, Defesa, Passe,
+                            Goleiro e Outros</strong>.
+                        </p>
+                    </article>
+                    <article class="methodology-card">
+                        <div class="methodology-card-label">Catálogo de Métricas</div>
+                        <p class="methodology-card-copy">
+                            Criamos uma matriz de inteligência com <strong>73 métricas homologadas</strong>
+                            espalhadas por <strong>16 categorias técnicas</strong>.
+                        </p>
+                    </article>
+                    <article class="methodology-card">
+                        <div class="methodology-card-label">Limpeza de Ruídos</div>
+                        <p class="methodology-card-copy">
+                            Descartamos dados 100% nulos e porcentagens que não faziam sentido
+                            para certas posições.
+                        </p>
+                    </article>
+                </div>
+                <p class="methodology-copy">
+                    <strong>Fusão de Campeonatos:</strong> unificamos os dados dos dois torneios
+                    pelo ID único de cada atleta. Se um jogador atuou na Copinha por um clube e
+                    no Brasileiro Sub-20 por outro, o pipeline somou os minutos e recalculou as
+                    médias de forma global.
+                </p>
+            </section>
+
+            <section class="methodology-stage">
+                <div class="methodology-stage-header">
+                    <div class="methodology-stage-badge">2</div>
+                    <div>
+                        <h2 class="methodology-stage-title">⏳ Filtro de Minutagem e Filtros de Campo</h2>
+                        <p class="methodology-copy">
+                            Nem todo dado de futebol é útil. Para o modelo ser confiável,
+                            aplicamos uma linha de corte realista de mercado.
+                        </p>
+                    </div>
+                </div>
+                <div class="methodology-card-grid">
+                    <article class="methodology-card">
+                        <div class="methodology-card-label">Corte de 90 Minutos</div>
+                        <p class="methodology-card-copy">
+                            Jogadores com menos de 90 minutos jogados foram descartados:
+                            <strong>786 atletas</strong>. Isso garantiu amostragem real de jogo.
+                        </p>
+                    </article>
+                    <article class="methodology-card">
+                        <div class="methodology-card-label">Refinamento por Posição</div>
+                        <p class="methodology-card-copy">
+                            Mantivemos apenas métricas de alta relevância prática, criando uma
+                            assinatura estatística ideal para cada função.
+                        </p>
+                    </article>
+                    <article class="methodology-card">
+                        <div class="methodology-card-label">Resultado</div>
+                        <p class="methodology-card-copy">
+                            A base final ficou mais justa, comparável e preparada para leitura
+                            técnica por posição.
+                        </p>
+                    </article>
+                </div>
+                <div class="methodology-position-grid">
+                    <article class="methodology-position-card">
+                        <div class="methodology-position-name">🧤 Goleiro</div>
+                        <div class="methodology-position-value">10</div>
+                        <div class="methodology-position-note">métricas mantidas</div>
+                    </article>
+                    <article class="methodology-position-card">
+                        <div class="methodology-position-name">🛡️ Defensor</div>
+                        <div class="methodology-position-value">12</div>
+                        <div class="methodology-position-note">métricas mantidas</div>
+                    </article>
+                    <article class="methodology-position-card">
+                        <div class="methodology-position-name">🏃‍♂️ Lateral</div>
+                        <div class="methodology-position-value">17</div>
+                        <div class="methodology-position-note">métricas mantidas</div>
+                    </article>
+                    <article class="methodology-position-card">
+                        <div class="methodology-position-name">🧠 Meio-campo</div>
+                        <div class="methodology-position-value">19</div>
+                        <div class="methodology-position-note">métricas mantidas</div>
+                    </article>
+                    <article class="methodology-position-card">
+                        <div class="methodology-position-name">⚽ Atacante</div>
+                        <div class="methodology-position-value">15</div>
+                        <div class="methodology-position-note">métricas mantidas</div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="methodology-stage">
+                <div class="methodology-stage-header">
+                    <div class="methodology-stage-badge">3</div>
+                    <div>
+                        <h2 class="methodology-stage-title">⚖️ Criação de Scores de Eficiência</h2>
+                        <p class="methodology-copy">
+                            Não medimos apenas o volume, como quantidade de desarmes, mas sim a
+                            <strong> eficiência e o impacto técnico</strong> do jogador.
+                        </p>
+                    </div>
+                </div>
+                <div class="methodology-card-grid">
+                    <article class="methodology-card">
+                        <div class="methodology-card-label">Padronização por 90 Minutos</div>
+                        <p class="methodology-card-copy">
+                            Métricas de volume foram calculadas proporcionalmente ao tempo em
+                            campo, permitindo comparar quem jogou 2 ou 10 partidas.
+                        </p>
+                    </article>
+                    <article class="methodology-card">
+                        <div class="methodology-card-label">Categorias Técnicas</div>
+                        <p class="methodology-card-copy">
+                            Criamos categorias específicas por posição, como <strong>Saída Aérea</strong>,
+                            <strong> Construção de Jogo</strong> e <strong>Quebrar Linhas</strong>.
+                        </p>
+                    </article>
+                    <article class="methodology-card">
+                        <div class="methodology-card-label">Peso Positivo vs. Negativo</div>
+                        <p class="methodology-card-copy">
+                            Erros graves, faltas cometidas, passes errados e vezes driblado
+                            entraram com <strong>sinal negativo</strong>, diminuindo a nota final.
+                        </p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="methodology-stage">
+                <div class="methodology-stage-header">
+                    <div class="methodology-stage-badge">4</div>
+                    <div>
+                        <h2 class="methodology-stage-title">📏 Equalização de Contexto</h2>
+                        <p class="methodology-copy">
+                            Para que o algoritmo funcione perfeitamente, as notas dos jogadores
+                            precisam estar na mesma régua.
+                        </p>
+                    </div>
+                </div>
+                <p class="methodology-copy">
+                    <strong>Normalização Posicional (Z-Score):</strong> através do modelo estatístico
+                    <strong> StandardScaler</strong>, transformamos os scores técnicos de cada atleta
+                    em relação à média da sua própria posição. Isso significa que o modelo não
+                    compara a quantidade de dribles de um ponta com a de um zagueiro; cada jogador
+                    compete apenas dentro do seu próprio universo posicional.
+                </p>
+            </section>
+
+            <section class="methodology-stage">
+                <div class="methodology-stage-header">
+                    <div class="methodology-stage-badge">5</div>
+                    <div>
+                        <h2 class="methodology-stage-title">🧠 Clusterização e Definição das Personas</h2>
+                        <p class="methodology-copy">
+                            Com os dados limpos, padronizados e contextualizados, aplicamos o
+                            algoritmo de Machine Learning <strong>K-Means</strong> para agrupar
+                            os jogadores por semelhança de estilo.
+                        </p>
+                    </div>
+                </div>
+                <p class="methodology-copy">
+                    <strong>Critério Matemático da Curvatura Máxima:</strong> para definir em
+                    quantos grupos dividir os atletas de cada posição, analisamos a curva de
+                    inércia do modelo. O cálculo de <strong>Max Curvature</strong> sugeriu
+                    matematicamente as seguintes divisões ideais de mercado.
+                </p>
+                <div class="methodology-position-grid">
+                    <article class="methodology-position-card">
+                        <div class="methodology-position-name">🧤 Goleiros</div>
+                        <div class="methodology-position-value">4 perfis</div>
+                        <div class="methodology-position-note">Silhouette Score: 0.30</div>
+                    </article>
+                    <article class="methodology-position-card">
+                        <div class="methodology-position-name">🛡️ Defensores</div>
+                        <div class="methodology-position-value">3 perfis</div>
+                        <div class="methodology-position-note">Silhouette Score: 0.30</div>
+                    </article>
+                    <article class="methodology-position-card">
+                        <div class="methodology-position-name">🏃‍♂️ Laterais</div>
+                        <div class="methodology-position-value">4 perfis</div>
+                        <div class="methodology-position-note">Silhouette Score: 0.29</div>
+                    </article>
+                    <article class="methodology-position-card">
+                        <div class="methodology-position-name">🧠 Meio-campistas</div>
+                        <div class="methodology-position-value">4 perfis</div>
+                        <div class="methodology-position-note">Silhouette Score: 0.23</div>
+                    </article>
+                    <article class="methodology-position-card">
+                        <div class="methodology-position-name">⚽ Atacantes</div>
+                        <div class="methodology-position-value">5 perfis</div>
+                        <div class="methodology-position-note">Silhouette Score: 0.20</div>
+                    </article>
+                </div>
+                <p class="methodology-copy">
+                    <strong>A Tradução para o Futebol:</strong> por fim, cruzamos a média estatística
+                    de cada grupo com os jargões do campo, batizando cada cluster com sua respectiva
+                    <strong> Persona do Futebol</strong>, como <strong>Box to Box</strong>,
+                    <strong> Falso 9</strong> e <strong>Zagueiro Construtor</strong>.
+                </p>
+            </section>
+        </main>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_selected_cluster_players(
     selected_rows: pd.DataFrame,
     selected_function: str,
@@ -3675,6 +4089,10 @@ with st.sidebar:
 
 if selected_page == PAGE_SOBRE:
     render_about_page()
+    st.stop()
+
+if selected_page == PAGE_METODOLOGIA:
+    render_methodology_page()
     st.stop()
 
 try:
