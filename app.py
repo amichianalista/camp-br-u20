@@ -309,6 +309,42 @@ CLUSTER_DESCRIPTIONS = {
         "Perfil conservador. Menor participacao no apoio ofensivo e numeros "
         "discretos na fase de marcacao."
     ),
+    ("meia", "meia de criacao"): (
+        "O camisa 10 classico moderno. Excelente na armacao e na chegada a "
+        "area para finalizar, sem deixar de ajudar na marcacao."
+    ),
+    ("meia", "box to box"): (
+        "Motor do time. Jogador de area a area, lider absoluto em volume de "
+        "jogo e transicao da defesa para o ataque."
+    ),
+    ("meia", "volante marcador"): (
+        "O cao de guarda. Especialista em quebrar o jogo adversario, "
+        "registrando os maiores indices defensivos da categoria."
+    ),
+    ("meia", "meio-campo comum"): (
+        "Jogador de rotacao. Mantem o equilibrio tatico, mas sem picos "
+        "estatisticos de criatividade ou desarmes."
+    ),
+    ("atacante", "armador aberto"): (
+        "O ponta associativo. Prefere o passe e a inteligencia tatica, "
+        "quebrando linhas e servindo os companheiros."
+    ),
+    ("atacante", "matador"): (
+        "O homem-gol. Destaca-se pelo faro de finalizacao, forte presenca "
+        "de area e capacidade de infiltracao."
+    ),
+    ("atacante", "falso 9"): (
+        "Atacante de movimentacao. Foca mais na quebra de linhas e presenca "
+        "fisica na area do que na finalizacao pura."
+    ),
+    ("atacante", "ponta classico"): (
+        "O velocista do drible. Especialista em quebrar linhas e dar "
+        "amplitude, jogando longe da area e buscando o fundo."
+    ),
+    ("atacante", "atacante comum"): (
+        "Perfil de menor minutagem ou impacto, com numeros discretos em "
+        "finalizacoes e jogadas individuais."
+    ),
 }
 
 
