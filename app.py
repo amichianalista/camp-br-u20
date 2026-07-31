@@ -281,6 +281,34 @@ CLUSTER_DESCRIPTIONS = {
         "Perfil regular e sem picos tecnicos evidentes, apresentando maior "
         "dificuldade em cruzamentos e saidas aereas."
     ),
+    ("defensor", "zagueiro completo"): (
+        "Seguranca total. Une alta eficiencia nos desarmes, dominio nas "
+        "disputas aereas e qualidade para comecar o jogo."
+    ),
+    ("defensor", "zagueiro construtor"): (
+        "O motor da saida de tres. Lider absoluto em passes verticais e "
+        "construcao de jogadas desde o campo de defesa."
+    ),
+    ("defensor", "zagueiro comum"): (
+        "Perfil de composicao. Atua de forma mais discreta e regular, com "
+        "menor destaque relativo nos fundamentos defensivos e de passe."
+    ),
+    ("lateral", "ala ofensivo"): (
+        "Apoio constante. Combina criacao no ultimo terco do campo, suporte "
+        "na transicao e bom equilibrio defensivo."
+    ),
+    ("lateral", "lateral construtor"): (
+        "O articulador lateral. Atua quase como um meio-campista, liderando "
+        "o volume de passes e a sustentacao do jogo."
+    ),
+    ("lateral", "lateral defensivo"): (
+        'O "lateral-base". Foco total na consistencia defensiva, sendo o '
+        "perfil mais dificil de ser batido no 1 contra 1."
+    ),
+    ("lateral", "lateral comum"): (
+        "Perfil conservador. Menor participacao no apoio ofensivo e numeros "
+        "discretos na fase de marcacao."
+    ),
 }
 
 
