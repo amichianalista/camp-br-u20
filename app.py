@@ -39,6 +39,7 @@ RAW_METRIC_TABLES_BY_SCORE_TABLE = {
 SCORE_ID_COLUMN = "jogador_id"
 SCORE_VALUE_PREFIX = "pontuacao_"
 SCORE_PERCENTILE_PREFIX = "percentil_"
+SCORE_PERCENTILE_ID_PREFIX = "score_percentil_id_"
 SCORE_METADATA_COLUMNS = {
     "jogador_id",
     "posicao",
@@ -50,6 +51,154 @@ RAW_METRIC_METADATA_COLUMNS = {
     "jogador_id",
     "minutos_jogados",
     "posicao",
+}
+RAW_METRIC_GROUPS_BY_TABLE = {
+    "fact.raw_metrics_players.atacantes": {
+        "finalizacao": [
+            "gols",
+            "finalizacoes",
+            "finalizacoes_no_alvo",
+            "finalizacoes_fora",
+            "finalizacoes_bloqueadas",
+            "grandes_chances_perdidas",
+            "percentual_conversao_gols",
+            "gols_cabeca",
+        ],
+        "presenca_area": [
+            "duelos_aereos_ganhos",
+            "percentual_duelos_aereos_ganhos",
+            "impedimentos",
+        ],
+        "criacao_apoio": [
+            "assistencias",
+            "passes_certos_terco_final",
+            "passes_chave",
+            "cruzamentos_certos",
+            "faltas_sofridas",
+        ],
+        "quebrar_linhas": [
+            "dribles_certos",
+            "percentual_dribles_certos",
+        ],
+    },
+    "fact.raw_metrics_players.defensores": {
+        "qualidade_defensiva": [
+            "cortes",
+            "interceptacoes",
+            "bloqueios_jogador_linha",
+            "duelos_chao_ganhos",
+            "duelos_totais_ganhos",
+            "vezes_driblado",
+            "faltas_cometidas",
+            "erros_levaram_finalizacao",
+            "penaltis_cometidos",
+        ],
+        "qualidade_aerea": [
+            "duelos_aereos_ganhos",
+            "percentual_duelos_aereos_ganhos",
+            "gols_cabeca",
+        ],
+        "saida_de_bola": [
+            "passes_certos",
+            "passes_errados",
+            "bolas_longas_certas",
+            "passes_certos_campo_defesa",
+            "desarmes_sofridos",
+            "posses_perdidas",
+        ],
+    },
+    "fact.raw_metrics_players.goleiros": {
+        "qualidade_defesa": [
+            "defesas",
+            "jogos_sem_sofrer_gol",
+            "finalizacoes_bloqueadas",
+            "erros_levaram_finalizacao",
+        ],
+        "saida_de_jogo": [
+            "passes_certos",
+            "passes_errados",
+            "bolas_longas_certas",
+            "cortes",
+            "duelos_totais_ganhos",
+        ],
+        "saida_aerea": [
+            "cruzamentos_nao_agarrados",
+            "duelos_aereos_ganhos",
+            "percentual_duelos_aereos_ganhos",
+        ],
+    },
+    "fact.raw_metrics_players.laterais": {
+        "qualidade_defensiva": [
+            "finalizacoes_bloqueadas",
+            "cortes",
+            "erros_levaram_finalizacao",
+            "duelos_totais_ganhos",
+            "vezes_driblado",
+            "desarmes",
+            "interceptacoes",
+            "faltas_cometidas",
+            "gols_sofridos_dentro_area",
+        ],
+        "apoio_construcao": [
+            "passes_certos",
+            "passes_errados",
+            "bolas_longas_certas",
+            "passes_certos_campo_defesa",
+            "passes_certos_campo_ataque",
+            "desarmes_sofridos",
+            "posses_perdidas",
+        ],
+        "criacao_ofensiva": [
+            "dribles_certos",
+            "grandes_chances_criadas",
+            "assistencias",
+            "passes_certos_terco_final",
+            "passes_chave",
+            "cruzamentos_certos",
+            "passes_para_assistencia",
+        ],
+        "finalizacao": [
+            "gols",
+            "finalizacoes",
+            "penaltis_cobrados",
+            "gols_pe_esquerdo",
+            "gols_pe_direito",
+            "impedimentos",
+        ],
+    },
+    "fact.raw_metrics_players.meias": {
+        "qualidade_defensiva": [
+            "finalizacoes_bloqueadas",
+            "cortes",
+            "erros_levaram_finalizacao",
+            "jogos_sem_sofrer_gol",
+            "duelos_totais_ganhos",
+            "duelos_aereos_ganhos",
+            "percentual_duelos_totais_ganhos",
+            "percentual_duelos_aereos_ganhos",
+            "vezes_driblado",
+            "faltas_cometidas",
+            "bloqueios_jogador_linha",
+        ],
+        "construcao_jogo": [
+            "passes_certos",
+            "passes_errados",
+            "bolas_longas_certas",
+        ],
+        "criacao": [
+            "dribles_certos",
+            "assistencias",
+            "passes_certos_terco_final",
+            "passes_chave",
+            "passes_para_assistencia",
+        ],
+        "chegada_area": [
+            "gols",
+            "finalizacoes",
+            "finalizacoes_no_alvo",
+            "impedimentos",
+        ],
+    },
 }
 IMAGE_MIME_TYPES = {
     "jpg": "image/jpeg",
@@ -536,7 +685,7 @@ def load_background_css() -> str:
         .score-support-metrics {{
             display: grid;
             gap: 0.45rem;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: minmax(0, 1fr);
         }}
 
         .score-support-label {{
@@ -554,13 +703,14 @@ def load_background_css() -> str:
 
         .raw-metrics-panel {{
             background:
-                linear-gradient(145deg, rgba(8, 16, 22, 0.94), rgba(7, 13, 18, 0.74));
+                radial-gradient(circle at 82% 10%, rgba(56, 189, 248, 0.12), transparent 18rem),
+                linear-gradient(145deg, rgba(8, 16, 22, 0.95), rgba(7, 13, 18, 0.76));
             border: 1px solid rgba(255, 255, 255, 0.14);
             border-radius: 8px;
             box-shadow: 0 16px 38px rgba(0, 0, 0, 0.22);
             margin-top: 0.72rem;
             overflow: hidden;
-            padding: 0.88rem;
+            padding: 1.2rem;
             position: relative;
         }}
 
@@ -575,56 +725,141 @@ def load_background_css() -> str:
         }}
 
         .raw-metrics-heading {{
-            align-items: baseline;
+            align-items: flex-start;
             display: flex;
             gap: 0.6rem;
             justify-content: space-between;
-            margin-bottom: 0.72rem;
+            margin-bottom: 1rem;
         }}
 
         .raw-metrics-title {{
             color: #f8fafc;
-            font-size: 1.05rem;
+            font-size: clamp(1.65rem, 3.6vw, 3rem);
             font-weight: 900;
             line-height: 1;
             margin: 0;
         }}
 
+        .raw-metrics-subtitle {{
+            color: rgba(226, 232, 240, 0.64);
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-top: 0.35rem;
+        }}
+
         .raw-metrics-position {{
+            background: rgba(34, 197, 94, 0.11);
+            border: 1px solid rgba(34, 197, 94, 0.26);
+            border-radius: 999px;
             color: rgba(34, 197, 94, 0.95);
             font-size: 0.72rem;
             font-weight: 900;
+            padding: 0.32rem 0.56rem;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }}
+
+        .raw-score-group-grid {{
+            display: grid;
+            gap: 0.72rem;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        }}
+
+        .raw-score-group {{
+            background:
+                linear-gradient(160deg, rgba(15, 23, 42, 0.84), rgba(6, 13, 18, 0.66));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            min-height: 156px;
+            overflow: hidden;
+            padding: 0.78rem;
+            position: relative;
+        }}
+
+        .raw-score-group::before {{
+            background: linear-gradient(180deg, #22c55e, #facc15, #38bdf8);
+            bottom: 0.8rem;
+            content: "";
+            left: 0;
+            position: absolute;
+            top: 0.8rem;
+            width: 3px;
+        }}
+
+        .raw-score-header {{
+            align-items: flex-start;
+            display: flex;
+            gap: 0.7rem;
+            justify-content: space-between;
+            margin-bottom: 0.72rem;
+            padding-left: 0.18rem;
+        }}
+
+        .raw-score-kicker {{
+            color: rgba(34, 197, 94, 0.88);
+            font-size: 0.58rem;
+            font-weight: 900;
+            margin-bottom: 0.2rem;
             text-transform: uppercase;
         }}
 
-        .raw-metrics-grid {{
-            display: grid;
-            gap: 0.5rem;
-            grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+        .raw-score-name {{
+            color: #f8fafc;
+            font-size: 1rem;
+            font-weight: 900;
+            line-height: 1.08;
+            margin: 0;
         }}
 
-        .raw-metric-card {{
+        .raw-score-percentile {{
+            background: rgba(250, 204, 21, 0.10);
+            border: 1px solid rgba(250, 204, 21, 0.24);
+            border-radius: 999px;
+            color: #fde68a;
+            font-size: 0.78rem;
+            font-weight: 900;
+            padding: 0.28rem 0.5rem;
+            white-space: nowrap;
+        }}
+
+        .raw-score-metrics {{
+            display: grid;
+            gap: 0.42rem;
+        }}
+
+        .raw-score-metric-row {{
+            align-items: center;
             background: rgba(255, 255, 255, 0.052);
-            border: 1px solid rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
-            min-height: 70px;
-            padding: 0.62rem;
+            display: grid;
+            gap: 0.52rem;
+            grid-template-columns: minmax(0, 1fr) auto;
+            min-height: 42px;
+            padding: 0.46rem 0.54rem;
         }}
 
         .raw-metric-label {{
             color: rgba(203, 213, 225, 0.68);
-            font-size: 0.62rem;
+            font-size: 0.68rem;
             font-weight: 900;
             line-height: 1.12;
-            margin-bottom: 0.32rem;
             text-transform: uppercase;
         }}
 
         .raw-metric-value {{
             color: #f8fafc;
-            font-size: 1.12rem;
+            font-size: 0.96rem;
             font-weight: 900;
             line-height: 1;
+            white-space: nowrap;
+        }}
+
+        .raw-score-empty {{
+            color: rgba(226, 232, 240, 0.56);
+            font-size: 0.78rem;
+            font-weight: 800;
+            padding: 0.35rem 0.2rem 0;
         }}
 
         .section-header {{
@@ -1234,6 +1469,15 @@ def load_background_css() -> str:
                 grid-template-columns: 1fr;
             }}
 
+            .raw-metrics-heading {{
+                align-items: flex-start;
+                flex-direction: column;
+            }}
+
+            .raw-score-group-grid {{
+                grid-template-columns: 1fr;
+            }}
+
             .dialog-player-card {{
                 grid-template-columns: 1fr;
             }}
@@ -1615,8 +1859,10 @@ def wide_score_categories(score_rows: list[dict]) -> list[dict]:
             categories.append(
                 {
                     "name": score_category_name(suffix),
+                    "suffix": suffix,
                     "score": value,
                     "percentile": percentile,
+                    "score_id": row.get(f"{SCORE_PERCENTILE_ID_PREFIX}{suffix}"),
                 }
             )
     return categories
@@ -1641,8 +1887,10 @@ def old_score_categories(score_rows: list[dict]) -> list[dict]:
     return [
         {
             "name": category,
+            "suffix": None,
             "score": float(np.mean(values)),
             "percentile": None,
+            "score_id": None,
         }
         for category, values in sorted(grouped.items(), key=lambda item: item[0])
         if values
@@ -1731,8 +1979,7 @@ def load_player_score_details(player_id: object) -> list[dict]:
 
 
 @st.cache_data(ttl=300, show_spinner=False)
-def load_player_raw_metric_rows(player_id: object) -> list[dict]:
-    _score_rows, score_table = load_player_score_rows_with_table(player_id)
+def load_player_raw_metric_rows_from_table(player_id: object, score_table: str | None) -> list[dict]:
     if not score_table:
         return []
 
@@ -1744,6 +1991,12 @@ def load_player_raw_metric_rows(player_id: object) -> list[dict]:
         return fetch_player_rows_from_table(get_score_schema(), metric_table, player_id)
     except Exception:  # noqa: BLE001
         return []
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def load_player_raw_metric_rows(player_id: object) -> list[dict]:
+    _score_rows, score_table = load_player_score_rows_with_table(player_id)
+    return load_player_raw_metric_rows_from_table(player_id, score_table)
 
 
 def format_raw_metric_value(value: object) -> str:
@@ -1761,24 +2014,146 @@ def format_raw_metric_value(value: object) -> str:
     return f"{number:,.1f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def raw_metric_cards_html(metric_rows: list[dict]) -> str:
-    if not metric_rows:
-        return ""
+def score_id_suffix_from_column(column: str) -> str | None:
+    if not column.startswith(SCORE_PERCENTILE_ID_PREFIX):
+        return None
 
-    row = metric_rows[0]
-    position = clean_text(row.get("posicao"), "Posicao nao informada")
-    cards_html = []
+    suffix = column.removeprefix(SCORE_PERCENTILE_ID_PREFIX).strip()
+    return suffix or None
 
+
+def raw_metric_items(row: dict) -> dict[str, object]:
+    items = {}
     for column, value in row.items():
         if column in RAW_METRIC_METADATA_COLUMNS or is_internal_id_field(column) or pd.isna(value):
             continue
+        items[column] = value
+    return items
 
-        cards_html.append(
-            '<article class="raw-metric-card">'
-            f'<div class="raw-metric-label">{html.escape(humanize_key(column))}</div>'
-            f'<div class="raw-metric-value">{html.escape(format_raw_metric_value(value))}</div>'
-            "</article>"
+
+def raw_metric_score_suffixes(row: dict, categories: list[dict]) -> list[str]:
+    suffixes = []
+    for category in categories:
+        suffix = category.get("suffix")
+        if suffix:
+            suffixes.append(str(suffix))
+
+    for column in row:
+        suffix = score_id_suffix_from_column(column)
+        if suffix:
+            suffixes.append(suffix)
+
+    return list(dict.fromkeys(suffixes))
+
+
+def raw_metric_groups(
+    metric_rows: list[dict],
+    score_rows: list[dict],
+    score_table: str | None,
+) -> tuple[str, list[dict]]:
+    if not metric_rows:
+        return "-", []
+
+    row = metric_rows[0]
+    position = clean_text(row.get("posicao"), "Posicao nao informada")
+    metric_table = RAW_METRIC_TABLES_BY_SCORE_TABLE.get(score_table or "", "")
+    configured_groups = RAW_METRIC_GROUPS_BY_TABLE.get(metric_table, {})
+    categories = score_categories(score_rows)
+    categories_by_suffix = {
+        str(category.get("suffix")): category
+        for category in categories
+        if category.get("suffix")
+    }
+    available_metrics = raw_metric_items(row)
+    used_metrics = set()
+    groups = []
+
+    for suffix in raw_metric_score_suffixes(row, categories):
+        metric_columns = [
+            column
+            for column in configured_groups.get(suffix, [])
+            if column in available_metrics
+        ]
+        if not metric_columns:
+            continue
+
+        used_metrics.update(metric_columns)
+        category = categories_by_suffix.get(suffix, {})
+        score_id = category.get("score_id") or row.get(f"{SCORE_PERCENTILE_ID_PREFIX}{suffix}")
+        groups.append(
+            {
+                "name": category.get("name") or score_category_name(suffix),
+                "percentile": category.get("percentile"),
+                "score_id": score_id,
+                "metrics": [
+                    {"name": humanize_key(column), "value": available_metrics[column]}
+                    for column in metric_columns
+                ],
+            }
         )
+
+    remaining_metrics = [
+        {"name": humanize_key(column), "value": value}
+        for column, value in available_metrics.items()
+        if column not in used_metrics
+    ]
+    if remaining_metrics:
+        groups.append(
+            {
+                "name": "Outras metricas",
+                "percentile": None,
+                "score_id": None,
+                "metrics": remaining_metrics,
+            }
+        )
+
+    return position, groups
+
+
+def raw_metric_group_html(group: dict) -> str:
+    percentile = format_percentile(group.get("percentile"))
+    percentile_html = (
+        f'<div class="raw-score-percentile">{html.escape(percentile)}</div>'
+        if percentile != "-"
+        else ""
+    )
+    raw_score_id = group.get("score_id")
+    score_id = "" if pd.isna(raw_score_id) else str(raw_score_id).strip()
+    score_id_attr = f' data-score-id="{html.escape(score_id, quote=True)}"' if score_id else ""
+    metrics_html = "".join(
+        '<div class="raw-score-metric-row">'
+        f'<div class="raw-metric-label">{html.escape(metric["name"])}</div>'
+        f'<div class="raw-metric-value">{html.escape(format_raw_metric_value(metric["value"]))}</div>'
+        "</div>"
+        for metric in group.get("metrics", [])
+    )
+    if not metrics_html:
+        metrics_html = '<div class="raw-score-empty">Sem metricas</div>'
+
+    return (
+        f'<article class="raw-score-group"{score_id_attr}>'
+        '<div class="raw-score-header">'
+        "<div>"
+        '<div class="raw-score-kicker">Score</div>'
+        f'<h3 class="raw-score-name">{html.escape(clean_text(group.get("name"), "Sem categoria"))}</h3>'
+        "</div>"
+        f"{percentile_html}"
+        "</div>"
+        f'<div class="raw-score-metrics">{metrics_html}</div>'
+        "</article>"
+    )
+
+
+def raw_metric_cards_html(
+    metric_rows: list[dict],
+    score_rows: list[dict] | None = None,
+    score_table: str | None = None,
+) -> str:
+    if not metric_rows:
+        return ""
+
+    position, groups = raw_metric_groups(metric_rows, score_rows or [], score_table)
+    cards_html = [raw_metric_group_html(group) for group in groups]
 
     if not cards_html:
         return ""
@@ -1789,7 +2164,7 @@ def raw_metric_cards_html(metric_rows: list[dict]) -> str:
         '<h2 class="raw-metrics-title">Números na temporada</h2>'
         f'<div class="raw-metrics-position">{html.escape(position)}</div>'
         "</div>"
-        f'<div class="raw-metrics-grid">{"".join(cards_html)}</div>'
+        f'<div class="raw-score-group-grid">{"".join(cards_html)}</div>'
         "</section>"
     )
 
@@ -1803,10 +2178,6 @@ def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
             f'<div class="score-support-category">{html.escape(category["name"])}</div>'
             '<div class="score-support-metrics">'
             '<div>'
-            '<div class="score-support-label">Score</div>'
-            f'<div class="score-support-value">{html.escape(format_score(category.get("score")))}</div>'
-            "</div>"
-            '<div>'
             '<div class="score-support-label">Percentil</div>'
             f'<div class="score-support-value">{html.escape(format_percentile(category.get("percentile")))}</div>'
             "</div>"
@@ -1819,7 +2190,6 @@ def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
             '<article class="score-support-card">'
             '<div class="score-support-category">Sem categoria</div>'
             '<div class="score-support-metrics">'
-            '<div><div class="score-support-label">Score</div><div class="score-support-value">-</div></div>'
             '<div><div class="score-support-label">Percentil</div><div class="score-support-value">-</div></div>'
             "</div>"
             "</article>"
@@ -1907,7 +2277,7 @@ def score_radar_figure(categories: list[dict]) -> go.Figure:
 
 
 def render_score_profile_section(player_id: object) -> None:
-    score_rows = load_player_score_rows(player_id)
+    score_rows, score_table = load_player_score_rows_with_table(player_id)
     categories = score_categories(score_rows)
     radar_categories = [category for category in categories if not pd.isna(category.get("percentile"))]
     first_row = score_rows[0] if score_rows else {}
@@ -1942,7 +2312,11 @@ def render_score_profile_section(player_id: object) -> None:
             use_container_width=True,
             config={"displayModeBar": False, "responsive": True},
         )
-    raw_metrics_html = raw_metric_cards_html(load_player_raw_metric_rows(player_id))
+    raw_metrics_html = raw_metric_cards_html(
+        load_player_raw_metric_rows_from_table(player_id, score_table),
+        score_rows,
+        score_table,
+    )
     if raw_metrics_html:
         st.markdown(raw_metrics_html, unsafe_allow_html=True)
     else:
@@ -2177,7 +2551,12 @@ def render_player_score_content(
         unsafe_allow_html=True,
     )
 
-    raw_metrics_html = raw_metric_cards_html(load_player_raw_metric_rows(player_id))
+    score_rows, score_table = load_player_score_rows_with_table(player_id)
+    raw_metrics_html = raw_metric_cards_html(
+        load_player_raw_metric_rows_from_table(player_id, score_table),
+        score_rows,
+        score_table,
+    )
     if raw_metrics_html:
         st.markdown(raw_metrics_html, unsafe_allow_html=True)
 
