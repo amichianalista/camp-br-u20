@@ -2216,9 +2216,29 @@ def radar_axis_scale(values: list[float]) -> tuple[int, list[int]]:
     return axis_max, tickvals
 
 
+def radar_text_positions(count: int) -> list[str]:
+    if count <= 0:
+        return []
+
+    positions = []
+    for index in range(count):
+        angle = (index / count) * 360
+        if 45 <= angle < 135:
+            positions.append("top center")
+        elif 135 <= angle < 225:
+            positions.append("middle left")
+        elif 225 <= angle < 315:
+            positions.append("bottom center")
+        else:
+            positions.append("middle right")
+
+    return positions
+
+
 def score_radar_figure(categories: list[dict]) -> go.Figure:
     labels = []
     values = []
+    value_labels = []
     for category in categories:
         percentile = category.get("percentile")
         if pd.isna(percentile):
@@ -2230,13 +2250,18 @@ def score_radar_figure(categories: list[dict]) -> go.Figure:
             continue
 
         labels.append(category["name"])
-        values.append(max(0, min(100, percentile_number)))
+        clipped_percentile = max(0, min(100, percentile_number))
+        values.append(clipped_percentile)
+        value_labels.append(format_percentile(clipped_percentile))
 
     axis_max, tickvals = radar_axis_scale(values)
+    text_positions = radar_text_positions(len(values))
 
     if labels and values:
         labels = [*labels, labels[0]]
         values = [*values, values[0]]
+        value_labels = [*value_labels, value_labels[0]]
+        text_positions = [*text_positions, text_positions[0]]
 
     figure = go.Figure()
     figure.add_trace(
@@ -2244,33 +2269,57 @@ def score_radar_figure(categories: list[dict]) -> go.Figure:
             r=values,
             theta=labels,
             fill="toself",
-            fillcolor="rgba(34, 197, 94, 0.26)",
-            line={"color": "#22c55e", "width": 3},
-            marker={"color": "#facc15", "size": 8, "line": {"color": "#0f172a", "width": 1}},
+            fillcolor="rgba(34, 197, 94, 0.10)",
+            hoverinfo="skip",
+            line={"color": "rgba(34, 197, 94, 0.18)", "width": 12},
+            marker={"size": 0},
+            mode="lines",
+            name="Area",
+        )
+    )
+    figure.add_trace(
+        go.Scatterpolar(
+            r=values,
+            theta=labels,
+            fill="toself",
+            fillcolor="rgba(34, 197, 94, 0.34)",
+            line={"color": "#22c55e", "width": 4},
+            marker={"color": "#facc15", "size": 12, "line": {"color": "#052e16", "width": 2}},
             hovertemplate="%{theta}<br>Percentil %{r:.1f}%<extra></extra>",
+            mode="lines+markers+text",
             name="Percentil",
+            text=value_labels,
+            textfont={"color": "#f8fafc", "size": 13},
+            textposition=text_positions,
         )
     )
     figure.update_layout(
-        height=360,
-        margin={"l": 112, "r": 112, "t": 42, "b": 48},
+        height=390,
+        hoverlabel={
+            "bgcolor": "rgba(7, 13, 18, 0.96)",
+            "bordercolor": "rgba(34, 197, 94, 0.45)",
+            "font": {"color": "#f8fafc", "size": 13},
+        },
+        margin={"l": 72, "r": 72, "t": 40, "b": 42},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
         polar={
-            "bgcolor": "rgba(2, 6, 23, 0.18)",
-            "domain": {"x": [0.16, 0.84], "y": [0.14, 0.86]},
+            "bgcolor": "rgba(2, 6, 23, 0.06)",
+            "domain": {"x": [0.08, 0.92], "y": [0.08, 0.92]},
             "radialaxis": {
                 "range": [0, axis_max],
+                "showline": False,
+                "showticklabels": False,
+                "ticks": "",
                 "tickvals": tickvals,
-                "tickfont": {"color": "rgba(226, 232, 240, 0.62)", "size": 10},
-                "gridcolor": "rgba(255, 255, 255, 0.16)",
-                "linecolor": "rgba(255, 255, 255, 0.16)",
+                "gridcolor": "rgba(148, 163, 184, 0.22)",
+                "linecolor": "rgba(255, 255, 255, 0)",
             },
             "angularaxis": {
-                "tickfont": {"color": "#f8fafc", "size": 12},
-                "gridcolor": "rgba(255, 255, 255, 0.12)",
-                "linecolor": "rgba(255, 255, 255, 0.18)",
+                "tickfont": {"color": "#f8fafc", "size": 13},
+                "gridcolor": "rgba(56, 189, 248, 0.16)",
+                "linecolor": "rgba(34, 197, 94, 0.24)",
             },
         },
     )
