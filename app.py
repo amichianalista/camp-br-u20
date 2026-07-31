@@ -2685,7 +2685,7 @@ def render_player_score_content(
                 <p class="selected-player-summary">{html.escape(team_name)} | {html.escape(player_position)}</p>
                 <div class="dialog-quick-facts">{quick_facts_html}</div>
                 <div class="dialog-cluster-highlight">
-                    <div class="dialog-cluster-label">Cluster</div>
+                    <div class="dialog-cluster-label">Tipo de Jogador</div>
                     <div class="dialog-cluster-value">{html.escape(cluster_value)}</div>
                 </div>
             </div>
