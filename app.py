@@ -22,7 +22,7 @@ from supabase import Client, create_client
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 BACKGROUND_PATH = ROOT_DIR / "assets" / "00000.png"
-ABOUT_FUNNEL_BACKGROUND_PATH = ROOT_DIR / "assets" / "00000.png"
+ABOUT_FUNNEL_BACKGROUND_PATH = ROOT_DIR / "assets" / "fesffrs.png"
 TEAM_LOGO_BUCKET = "jogadores-br-sub-20"
 TEAM_LOGO_FOLDER = "teams"
 PLAYER_IMAGE_FOLDER = "players"
@@ -605,7 +605,8 @@ def load_background_css() -> str:
         .about-funnel {{
             background: {about_funnel_background_layers};
             background-position: center;
-            background-size: cover;
+            background-repeat: no-repeat;
+            background-size: contain;
             border: 1px solid rgba(34, 197, 94, 0.20);
             border-radius: 14px;
             box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
@@ -735,7 +736,8 @@ def load_background_css() -> str:
         .methodology-stage {{
             background: {about_funnel_background_layers};
             background-position: center;
-            background-size: cover;
+            background-repeat: no-repeat;
+            background-size: contain;
             border: 1px solid rgba(34, 197, 94, 0.18);
             border-radius: 14px;
             box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
