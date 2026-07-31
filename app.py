@@ -668,7 +668,7 @@ def load_background_css() -> str:
         }}
 
         .cluster-panel-description {{
-            color: rgba(226, 232, 240, 0.72);
+            color: #f8fafc;
             font-size: 0.86rem;
             font-weight: 700;
             line-height: 1.34;
@@ -1257,7 +1257,7 @@ def load_background_css() -> str:
         }}
 
         .cluster-description {{
-            color: rgba(226, 232, 240, 0.72);
+            color: #f8fafc;
             font-size: 0.84rem;
             font-weight: 700;
             line-height: 1.35;
