@@ -1320,6 +1320,109 @@ def load_background_css() -> str:
             padding: 0.62rem;
         }}
 
+        .dialog-summary-shell {{
+            background: rgba(8, 16, 22, 0.62);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 8px;
+            margin-top: 0.64rem;
+            padding: 0.72rem;
+        }}
+
+        .dialog-summary-grid {{
+            display: grid;
+            gap: 0.56rem;
+            grid-template-columns: minmax(210px, 0.82fr) minmax(0, 1.18fr);
+        }}
+
+        .dialog-summary-panel {{
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            padding: 0.58rem;
+        }}
+
+        .dialog-summary-title {{
+            color: #f8fafc;
+            font-size: 0.72rem;
+            font-weight: 900;
+            margin: 0 0 0.48rem 0;
+            text-transform: uppercase;
+        }}
+
+        .dialog-score-mini-grid {{
+            display: grid;
+            gap: 0.34rem;
+        }}
+
+        .dialog-score-mini {{
+            align-items: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            display: grid;
+            gap: 0.48rem;
+            grid-template-columns: minmax(0, 1fr) auto;
+            min-height: 38px;
+            padding: 0.4rem 0.48rem;
+        }}
+
+        .dialog-score-mini-name,
+        .dialog-season-metric-name {{
+            color: rgba(248, 250, 252, 0.82);
+            font-size: 0.68rem;
+            font-weight: 850;
+            line-height: 1.12;
+            text-transform: uppercase;
+        }}
+
+        .dialog-score-mini-value,
+        .dialog-season-metric-value {{
+            color: #f8fafc;
+            font-size: 0.82rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }}
+
+        .dialog-season-group {{
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            padding-top: 0.5rem;
+        }}
+
+        .dialog-season-group:first-child {{
+            border-top: 0;
+            padding-top: 0;
+        }}
+
+        .dialog-season-group + .dialog-season-group {{
+            margin-top: 0.5rem;
+        }}
+
+        .dialog-season-group-title {{
+            color: rgba(34, 197, 94, 0.96);
+            font-size: 0.66rem;
+            font-weight: 900;
+            margin-bottom: 0.36rem;
+            text-transform: uppercase;
+        }}
+
+        .dialog-season-metrics {{
+            display: grid;
+            gap: 0.3rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }}
+
+        .dialog-season-metric {{
+            align-items: center;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.065);
+            border-radius: 8px;
+            display: grid;
+            gap: 0.44rem;
+            grid-template-columns: minmax(0, 1fr) auto;
+            min-height: 34px;
+            padding: 0.34rem 0.42rem;
+        }}
+
         .dialog-player-photo {{
             align-items: flex-end;
             background: rgba(2, 6, 23, 0.56);
@@ -1596,6 +1699,11 @@ def load_background_css() -> str:
             }}
 
             .dialog-quick-facts {{
+                grid-template-columns: 1fr;
+            }}
+
+            .dialog-summary-grid,
+            .dialog-season-metrics {{
                 grid-template-columns: 1fr;
             }}
         }}
@@ -2848,6 +2956,91 @@ def render_score_cards(score_cards: list[dict]) -> str:
     )
 
 
+def dialog_score_mini_html(score_details: list[dict]) -> str:
+    if not score_details:
+        return (
+            '<div class="dialog-score-mini">'
+            '<div class="dialog-score-mini-name">Scores</div>'
+            '<div class="dialog-score-mini-value">-</div>'
+            "</div>"
+        )
+
+    return "".join(
+        '<div class="dialog-score-mini">'
+        f'<div class="dialog-score-mini-name">{html.escape(detail["name"])}</div>'
+        f'<div class="dialog-score-mini-value">{html.escape(detail["value"])}</div>'
+        "</div>"
+        for detail in score_details
+    )
+
+
+def dialog_season_metrics_html(
+    metric_rows: list[dict],
+    score_rows: list[dict],
+    score_table: str | None,
+) -> str:
+    _position, groups = raw_metric_groups(metric_rows, score_rows, score_table)
+    if not groups:
+        return (
+            '<div class="dialog-season-metric">'
+            '<div class="dialog-season-metric-name">Numeros</div>'
+            '<div class="dialog-season-metric-value">-</div>'
+            "</div>"
+        )
+
+    group_html = []
+    for group in groups:
+        metrics_html = "".join(
+            '<div class="dialog-season-metric">'
+            f'<div class="dialog-season-metric-name">{html.escape(metric["name"])}</div>'
+            f'<div class="dialog-season-metric-value">{html.escape(format_raw_metric_value(metric["value"]))}</div>'
+            "</div>"
+            for metric in group.get("metrics", [])
+        )
+        if not metrics_html:
+            continue
+
+        group_html.append(
+            '<div class="dialog-season-group">'
+            f'<div class="dialog-season-group-title">{html.escape(clean_text(group.get("name"), "Sem categoria"))}</div>'
+            f'<div class="dialog-season-metrics">{metrics_html}</div>'
+            "</div>"
+        )
+
+    return "".join(group_html)
+
+
+def dialog_score_season_summary_html(
+    score_details: list[dict],
+    metric_rows: list[dict],
+    score_rows: list[dict],
+    score_table: str | None,
+) -> str:
+    scores_html = dialog_score_mini_html(score_details)
+    season_html = dialog_season_metrics_html(metric_rows, score_rows, score_table)
+
+    return (
+        '<section class="dialog-summary-shell">'
+        '<div class="dialog-raw-title">'
+        "<div>"
+        '<div class="player-kicker">Resumo tecnico</div>'
+        '<p class="section-note">Scores e numeros da temporada</p>'
+        "</div>"
+        "</div>"
+        '<div class="dialog-summary-grid">'
+        '<div class="dialog-summary-panel">'
+        '<div class="dialog-summary-title">Scores</div>'
+        f'<div class="dialog-score-mini-grid">{scores_html}</div>'
+        "</div>"
+        '<div class="dialog-summary-panel">'
+        '<div class="dialog-summary-title">Numeros da temporada</div>'
+        f"{season_html}"
+        "</div>"
+        "</div>"
+        "</section>"
+    )
+
+
 def render_player_score_content(
     player_info: dict,
 ) -> None:
@@ -2882,20 +3075,6 @@ def render_player_score_content(
     )
 
     score_details = load_player_score_details(player_id)
-    score_details_html = "".join(
-        '<div class="dialog-bio-card">'
-        f'<div class="dialog-bio-label">{html.escape(detail["name"])}</div>'
-        f'<div class="dialog-bio-value">{html.escape(detail["value"])}</div>'
-        "</div>"
-        for detail in score_details
-    )
-    if not score_details_html:
-        score_details_html = (
-            '<div class="dialog-bio-card">'
-            '<div class="dialog-bio-label">Scores</div>'
-            '<div class="dialog-bio-value">-</div>'
-            "</div>"
-        )
 
     st.markdown(
         f"""
@@ -2920,27 +3099,18 @@ def render_player_score_content(
         st.warning("Nao encontrei jogador_id para carregar os scores desse atleta.")
         return
 
-    st.markdown(
-        f"""
-        <section class="dialog-bio-shell">
-            <div class="dialog-raw-title">
-                <div class="player-kicker">Scores</div>
-            </div>
-            <div class="dialog-bio-grid">{score_details_html}</div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-
     score_rows, score_table = load_player_score_rows_with_table(player_id)
     render_cluster_comparison(player_id, score_rows, score_table)
-    raw_metrics_html = raw_metric_cards_html(
-        load_player_raw_metric_rows_from_table(player_id, score_table),
-        score_rows,
-        score_table,
+    metric_rows = load_player_raw_metric_rows_from_table(player_id, score_table)
+    st.markdown(
+        dialog_score_season_summary_html(
+            score_details,
+            metric_rows,
+            score_rows,
+            score_table,
+        ),
+        unsafe_allow_html=True,
     )
-    if raw_metrics_html:
-        st.markdown(raw_metrics_html, unsafe_allow_html=True)
 
 
 if hasattr(st, "dialog"):
