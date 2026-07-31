@@ -1754,6 +1754,137 @@ def load_background_css() -> str:
             padding: 0.62rem;
         }}
 
+        .cluster-compare-shell {{
+            background:
+                linear-gradient(135deg, rgba(8, 16, 22, 0.94), rgba(7, 13, 18, 0.72));
+            border: 1px solid rgba(34, 197, 94, 0.20);
+            border-radius: 8px;
+            margin-bottom: 0.7rem;
+            overflow: hidden;
+            padding: 0.72rem;
+            position: relative;
+        }}
+
+        .cluster-compare-shell::before {{
+            background: linear-gradient(90deg, #22c55e, #facc15, #38bdf8);
+            content: "";
+            height: 3px;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }}
+
+        .cluster-compare-grid {{
+            display: grid;
+            gap: 0.5rem;
+            margin-top: 0.68rem;
+        }}
+
+        .cluster-compare-card {{
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            display: grid;
+            gap: 0.62rem;
+            grid-template-columns: minmax(150px, 0.55fr) minmax(240px, 1.45fr);
+            min-height: 78px;
+            padding: 0.62rem;
+        }}
+
+        .cluster-compare-name {{
+            color: #f8fafc;
+            font-size: 0.9rem;
+            font-weight: 950;
+            line-height: 1.08;
+        }}
+
+        .cluster-compare-status {{
+            color: rgba(248, 250, 252, 0.72);
+            font-size: 0.68rem;
+            font-weight: 850;
+            margin-top: 0.34rem;
+            text-transform: uppercase;
+        }}
+
+        .cluster-compare-value {{
+            color: #facc15;
+            font-size: 1.15rem;
+            font-weight: 950;
+            line-height: 1;
+            margin-top: 0.3rem;
+        }}
+
+        .cluster-range {{
+            padding: 1.1rem 0.2rem 0.25rem 0.2rem;
+        }}
+
+        .cluster-track {{
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 999px;
+            height: 12px;
+            position: relative;
+        }}
+
+        .cluster-band {{
+            background: linear-gradient(90deg, rgba(34, 197, 94, 0.56), rgba(56, 189, 248, 0.46));
+            border-radius: 999px;
+            height: 100%;
+            left: var(--q1);
+            position: absolute;
+            width: max(3%, calc(var(--q3) - var(--q1)));
+        }}
+
+        .cluster-median {{
+            background: #f8fafc;
+            border-radius: 999px;
+            bottom: -5px;
+            box-shadow: 0 0 0 2px rgba(2, 6, 23, 0.92);
+            left: var(--median);
+            position: absolute;
+            top: -5px;
+            width: 2px;
+        }}
+
+        .cluster-selected {{
+            align-items: center;
+            background: #facc15;
+            border: 2px solid #052e16;
+            border-radius: 50%;
+            box-shadow: 0 0 0 5px rgba(250, 204, 21, 0.14), 0 8px 18px rgba(0, 0, 0, 0.34);
+            color: #052e16;
+            display: flex;
+            font-size: 0.58rem;
+            font-weight: 950;
+            height: 28px;
+            justify-content: center;
+            left: var(--selected);
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 28px;
+            z-index: 2;
+        }}
+
+        .cluster-range-labels {{
+            align-items: center;
+            color: rgba(248, 250, 252, 0.58);
+            display: flex;
+            font-size: 0.64rem;
+            font-weight: 800;
+            justify-content: space-between;
+            margin-top: 0.48rem;
+        }}
+
+        .cluster-range-note {{
+            color: rgba(248, 250, 252, 0.70);
+            font-size: 0.68rem;
+            font-weight: 800;
+            margin-top: 0.28rem;
+            text-align: right;
+        }}
+
         .dialog-summary-shell {{
             background: rgba(8, 16, 22, 0.62);
             border: 1px solid rgba(255, 255, 255, 0.09);
@@ -2153,6 +2284,10 @@ def load_background_css() -> str:
 
             .dialog-summary-grid,
             .dialog-season-metrics {{
+                grid-template-columns: 1fr;
+            }}
+
+            .cluster-compare-card {{
                 grid-template-columns: 1fr;
             }}
         }}
@@ -3084,93 +3219,56 @@ def cluster_comparison_label(gap: float) -> str:
     return "na faixa do cluster"
 
 
-def cluster_comparison_figure(comparison_rows: list[dict]) -> go.Figure:
-    figure = go.Figure()
-    ordered_rows = list(reversed(comparison_rows))
+def css_percent(value: float) -> str:
+    return f"{max(0, min(100, value)):.2f}%"
 
-    for row in ordered_rows:
-        values = row["values"]
-        figure.add_trace(
-            go.Box(
-                x=values,
-                y=[row["name"]] * len(values),
-                orientation="h",
-                boxmean=False,
-                boxpoints="all",
-                fillcolor="rgba(56, 189, 248, 0.10)",
-                jitter=0.36,
-                line={"color": "rgba(56, 189, 248, 0.42)", "width": 1.4},
-                marker={
-                    "color": "rgba(226, 232, 240, 0.36)",
-                    "line": {"color": "rgba(15, 23, 42, 0.90)", "width": 1},
-                    "size": 6,
-                },
-                name=row["name"],
-                pointpos=0,
-                showlegend=False,
-                whiskerwidth=0.35,
-                hovertemplate=(
-                    f"{html.escape(row['name'])}<br>"
-                    "Jogador do cluster: %{x:.1f}%<extra></extra>"
-                ),
-            )
-        )
 
-    figure.add_trace(
-        go.Scatter(
-            x=[row["selected"] for row in ordered_rows],
-            y=[row["name"] for row in ordered_rows],
-            customdata=[
-                [format_score(row["median"]), cluster_comparison_label(row["gap"])]
-                for row in ordered_rows
-            ],
-            mode="markers+text",
-            marker={
-                "color": "#facc15",
-                "line": {"color": "#052e16", "width": 2},
-                "size": 16,
-                "symbol": "diamond",
-            },
-            text=[format_percentile(row["selected"]) for row in ordered_rows],
-            textfont={"color": "#f8fafc", "size": 13},
-            textposition="middle right",
-            hovertemplate=(
-                "Selecionado: %{x:.1f}%<br>"
-                "Mediana do cluster: %{customdata[0]}%<br>"
-                "%{customdata[1]}<extra></extra>"
-            ),
-            name="Selecionado",
-            showlegend=False,
-        )
+def cluster_comparison_card_html(row: dict) -> str:
+    values = row["values"]
+    q1 = float(np.percentile(values, 25))
+    q3 = float(np.percentile(values, 75))
+    selected = row["selected"]
+    median = row["median"]
+    status = cluster_comparison_label(row["gap"])
+    count = len(values)
+
+    return (
+        '<article class="cluster-compare-card">'
+        "<div>"
+        f'<div class="cluster-compare-name">{html.escape(row["name"])}</div>'
+        f'<div class="cluster-compare-status">{html.escape(status)} | {count} atletas</div>'
+        f'<div class="cluster-compare-value">{html.escape(format_percentile(selected))}</div>'
+        "</div>"
+        '<div class="cluster-range">'
+        '<div class="cluster-track" '
+        f'style="--q1: {css_percent(q1)}; --q3: {css_percent(q3)}; '
+        f'--median: {css_percent(median)}; --selected: {css_percent(selected)};">'
+        '<div class="cluster-band"></div>'
+        '<div class="cluster-median"></div>'
+        f'<div class="cluster-selected">{html.escape(format_score(selected))}</div>'
+        "</div>"
+        '<div class="cluster-range-labels">'
+        "<span>0%</span><span>Faixa do cluster</span><span>100%</span>"
+        "</div>"
+        f'<div class="cluster-range-note">Mediana do cluster: {html.escape(format_percentile(median))}</div>'
+        "</div>"
+        "</article>"
     )
 
-    figure.update_layout(
-        height=max(260, 95 * len(ordered_rows)),
-        margin={"l": 142, "r": 58, "t": 18, "b": 34},
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(2, 6, 23, 0.20)",
-        hoverlabel={
-            "bgcolor": "rgba(7, 13, 18, 0.96)",
-            "bordercolor": "rgba(34, 197, 94, 0.45)",
-            "font": {"color": "#f8fafc", "size": 13},
-        },
-        xaxis={
-            "range": [0, 104],
-            "tickmode": "array",
-            "tickvals": [0, 25, 50, 75, 100],
-            "ticksuffix": "%",
-            "gridcolor": "rgba(148, 163, 184, 0.12)",
-            "linecolor": "rgba(255, 255, 255, 0.12)",
-            "tickfont": {"color": "rgba(248, 250, 252, 0.70)", "size": 10},
-            "zeroline": False,
-        },
-        yaxis={
-            "color": "#f8fafc",
-            "gridcolor": "rgba(255, 255, 255, 0.06)",
-            "tickfont": {"color": "#f8fafc", "size": 12},
-        },
+
+def cluster_comparison_html(comparison_rows: list[dict], cluster_name: str) -> str:
+    cards_html = "".join(cluster_comparison_card_html(row) for row in comparison_rows)
+    return (
+        '<section class="cluster-compare-shell">'
+        '<div class="dialog-raw-title">'
+        "<div>"
+        '<div class="player-kicker">Comparativo no cluster</div>'
+        f'<p class="section-note">Jogador selecionado contra atletas do tipo {html.escape(cluster_name)}</p>'
+        "</div>"
+        "</div>"
+        f'<div class="cluster-compare-grid">{cards_html}</div>'
+        "</section>"
     )
-    return figure
 
 
 def render_cluster_comparison(
@@ -3187,24 +3285,7 @@ def render_cluster_comparison(
         score_rows[0].get("cluster") if score_rows else None,
         fallback="cluster",
     )
-    st.markdown(
-        f"""
-        <section class="dialog-bio-shell">
-            <div class="dialog-raw-title">
-                <div>
-                    <div class="player-kicker">Comparativo no cluster</div>
-                    <p class="section-note">Jogador selecionado contra atletas do tipo {html.escape(cluster_name)}</p>
-                </div>
-            </div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.plotly_chart(
-        cluster_comparison_figure(comparison_rows),
-        use_container_width=True,
-        config={"displayModeBar": False, "responsive": True},
-    )
+    st.markdown(cluster_comparison_html(comparison_rows, cluster_name), unsafe_allow_html=True)
 
 
 def render_score_profile_section(player_id: object) -> None:
