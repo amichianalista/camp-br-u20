@@ -667,6 +667,15 @@ def load_background_css() -> str:
             margin-bottom: 0;
         }}
 
+        .cluster-panel-description {{
+            color: rgba(226, 232, 240, 0.72);
+            font-size: 0.86rem;
+            font-weight: 700;
+            line-height: 1.34;
+            margin: 0.85rem 0 0 0;
+            max-width: 34rem;
+        }}
+
         .performance-section {{
             margin-top: 0.7rem;
         }}
@@ -3010,6 +3019,15 @@ player_minutes = (
     else "-"
 )
 cluster_value = load_player_score_cluster(player_id)
+cluster_description = cluster_description_text(
+    function_label_from_position(player_position),
+    cluster_value,
+)
+cluster_description_html = (
+    f'<p class="cluster-panel-description">{html.escape(cluster_description)}</p>'
+    if cluster_description
+    else ""
+)
 
 st.markdown(
     f"""
@@ -3057,6 +3075,7 @@ st.markdown(
         <div class="cluster-panel">
             <div class="cluster-label">Tipo de jogador</div>
             <div class="cluster-value">{html.escape(cluster_value)}</div>
+            {cluster_description_html}
         </div>
     </section>
     """,
