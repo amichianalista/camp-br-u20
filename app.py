@@ -669,7 +669,7 @@ def load_background_css() -> str:
             border: 1px solid rgba(255, 255, 255, 0.09);
             border-radius: 8px;
             display: grid;
-            gap: 0.48rem;
+            gap: 0.72rem;
             grid-template-columns: minmax(0, 1fr);
             min-height: 112px;
             padding: 0.7rem;
@@ -696,9 +696,11 @@ def load_background_css() -> str:
         }}
 
         .score-support-value {{
-            color: #f8fafc;
+            color: #ffffff;
+            font-size: clamp(1.55rem, 2.2vw, 2.15rem);
             font-weight: 900;
-            line-height: 1.05;
+            line-height: 0.98;
+            text-shadow: 0 10px 24px rgba(34, 197, 94, 0.22);
         }}
 
         .raw-metrics-panel {{
@@ -2178,7 +2180,6 @@ def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
             f'<div class="score-support-category">{html.escape(category["name"])}</div>'
             '<div class="score-support-metrics">'
             '<div>'
-            '<div class="score-support-label">Percentil</div>'
             f'<div class="score-support-value">{html.escape(format_percentile(category.get("percentile")))}</div>'
             "</div>"
             "</div>"
@@ -2190,7 +2191,7 @@ def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
             '<article class="score-support-card">'
             '<div class="score-support-category">Sem categoria</div>'
             '<div class="score-support-metrics">'
-            '<div><div class="score-support-label">Percentil</div><div class="score-support-value">-</div></div>'
+            '<div><div class="score-support-value">-</div></div>'
             "</div>"
             "</article>"
         )
