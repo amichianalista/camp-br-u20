@@ -264,6 +264,26 @@ DEFAULT_TEAM_ALIASES = (
 FUNCTION_ORDER = ["Goleiro", "Lateral", "Defensor", "Meia", "Atacante", "Outras funções"]
 
 
+CLUSTER_DESCRIPTIONS = {
+    ("goleiro", "goleiro paredao"): (
+        "O goleiro completo. Destaca-se pela seguranca embaixo das traves, "
+        "excelente tempo de saida aerea e otima reposicao de jogo."
+    ),
+    ("goleiro", "goleiro construtor"): (
+        'O "11o jogador". Especialista em iniciar as jogadas, com o maior '
+        "indice de participacao e qualidade na saida de bola com os pes."
+    ),
+    ("goleiro", "paredao aereo"): (
+        "Dono da grande area. Domina o jogo aereo e mantem um nivel "
+        "intermediario e seguro nas defesas e saidas de jogo."
+    ),
+    ("goleiro", "goleiro comum"): (
+        "Perfil regular e sem picos tecnicos evidentes, apresentando maior "
+        "dificuldade em cruzamentos e saidas aereas."
+    ),
+}
+
+
 st.set_page_config(
     page_title="Variaveis Tecnicas | Base BR",
     page_icon=str(BACKGROUND_PATH),
@@ -1161,6 +1181,15 @@ def load_background_css() -> str:
             font-size: 0.94rem;
             font-weight: 900;
             margin: 0.12rem 0 0 0;
+        }}
+
+        .cluster-description {{
+            color: rgba(226, 232, 240, 0.72);
+            font-size: 0.84rem;
+            font-weight: 700;
+            line-height: 1.35;
+            margin: 0.5rem 0 0 0;
+            max-width: 860px;
         }}
 
         .selected-player-summary {{
@@ -2394,6 +2423,13 @@ def normalize_search_text(value: object) -> str:
     )
 
 
+def cluster_description_text(function_label: object, cluster_name: object) -> str:
+    return CLUSTER_DESCRIPTIONS.get(
+        (normalize_search_text(function_label), normalize_search_text(cluster_name)),
+        "",
+    )
+
+
 def default_team_index(teams: list[str]) -> int | None:
     if not teams:
         return None
@@ -2634,6 +2670,12 @@ def render_selected_cluster_players(
     team_column: str,
     player_column: str,
 ) -> None:
+    cluster_description = cluster_description_text(selected_function, selected_cluster_name)
+    cluster_description_html = (
+        f'<p class="cluster-description">{html.escape(cluster_description)}</p>'
+        if cluster_description
+        else ""
+    )
     title_column, close_column = st.columns([0.965, 0.035], gap="small")
     with title_column:
         st.markdown(
@@ -2642,6 +2684,7 @@ def render_selected_cluster_players(
                 <span class="cluster-close-visual">×</span>
                 <div class="player-kicker">Cluster selecionado</div>
                 <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
+                {cluster_description_html}
             </section>
             """,
             unsafe_allow_html=True,
