@@ -394,20 +394,14 @@ def load_background_css() -> str:
         about_encoded = base64.b64encode(ABOUT_FUNNEL_BACKGROUND_PATH.read_bytes()).decode("utf-8")
         about_funnel_background = f'url("data:image/png;base64,{about_encoded}")'
     about_funnel_background_layers = (
-        "linear-gradient(90deg, rgba(6, 13, 18, 0.94), rgba(6, 13, 18, 0.74) 45%, "
-        "rgba(6, 13, 18, 0.48)), "
-        "linear-gradient(180deg, rgba(6, 13, 18, 0.82), rgba(6, 13, 18, 0.68)), "
         f"{about_funnel_background}"
         if about_funnel_background
-        else "linear-gradient(135deg, rgba(8, 16, 22, 0.90), rgba(7, 13, 18, 0.66))"
+        else "linear-gradient(135deg, rgba(8, 16, 22, 0.24), rgba(7, 13, 18, 0.10))"
     )
     return f"""
     <style>
         .stApp {{
-            background:
-                radial-gradient(circle at 82% 18%, rgba(56, 189, 248, 0.22), transparent 28rem),
-                linear-gradient(90deg, rgba(5, 10, 14, 0.96), rgba(5, 10, 14, 0.78) 48%, rgba(5, 10, 14, 0.58)),
-                url("data:image/png;base64,{encoded}");
+            background: url("data:image/png;base64,{encoded}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -438,20 +432,72 @@ def load_background_css() -> str:
 
         .about-page {{
             margin: 0 auto;
-            max-width: 1180px;
-            padding: 0.3rem 0 1.4rem 0;
+            max-width: 1260px;
+            padding: 0.55rem 0 1.8rem 0;
         }}
 
         .about-hero {{
             background:
-                linear-gradient(135deg, rgba(8, 16, 22, 0.96), rgba(7, 13, 18, 0.72)),
-                linear-gradient(90deg, rgba(34, 197, 94, 0.12), rgba(56, 189, 248, 0.10));
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 8px;
-            box-shadow: 0 22px 54px rgba(0, 0, 0, 0.30);
+                linear-gradient(135deg, rgba(8, 16, 22, 0.70), rgba(7, 13, 18, 0.28)),
+                linear-gradient(90deg, rgba(34, 197, 94, 0.10), rgba(56, 189, 248, 0.08));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
+            backdrop-filter: blur(18px) saturate(140%);
             overflow: hidden;
             padding: clamp(1.25rem, 4vw, 3.2rem);
             position: relative;
+        }}
+
+        .about-hero-layout {{
+            align-items: start;
+            display: grid;
+            gap: 1.25rem;
+            grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.55fr);
+        }}
+
+        .about-hero-copy {{
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }}
+
+        .about-hero-aside {{
+            align-self: stretch;
+            display: grid;
+            gap: 0.72rem;
+        }}
+
+        .about-hero-stat {{
+            background: rgba(8, 16, 22, 0.34);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 14px;
+            backdrop-filter: blur(16px) saturate(135%);
+            padding: 0.85rem 0.9rem;
+        }}
+
+        .about-hero-stat-label {{
+            color: rgba(34, 197, 94, 0.92);
+            font-size: 0.66rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }}
+
+        .about-hero-stat-value {{
+            color: #f8fafc;
+            font-size: clamp(1.65rem, 2.4vw, 2.45rem);
+            font-weight: 950;
+            line-height: 0.95;
+            margin-top: 0.2rem;
+        }}
+
+        .about-hero-stat-copy {{
+            color: rgba(248, 250, 252, 0.76);
+            font-size: 0.84rem;
+            font-weight: 650;
+            line-height: 1.42;
+            margin-top: 0.35rem;
         }}
 
         .about-hero::before {{
@@ -480,7 +526,7 @@ def load_background_css() -> str:
             line-height: 0.95;
             margin: 0;
             max-width: 980px;
-            text-shadow: 0 18px 48px rgba(0, 0, 0, 0.46);
+            text-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
         }}
 
         .about-copy {{
@@ -518,17 +564,18 @@ def load_background_css() -> str:
 
         .about-grid {{
             display: grid;
-            gap: 0.72rem;
+            gap: 0.95rem;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            margin-top: 0.78rem;
+            margin-top: 1rem;
         }}
 
         .about-panel {{
-            background: rgba(8, 16, 22, 0.74);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 8px;
-            min-height: 132px;
-            padding: 0.9rem;
+            background: rgba(8, 16, 22, 0.38);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            min-height: 148px;
+            padding: 1rem 1.05rem;
+            backdrop-filter: blur(14px) saturate(135%);
         }}
 
         .about-panel-label {{
@@ -541,7 +588,7 @@ def load_background_css() -> str:
 
         .about-panel-title {{
             color: #f8fafc;
-            font-size: 1.05rem;
+            font-size: 1.08rem;
             font-weight: 950;
             line-height: 1.05;
             margin-bottom: 0.48rem;
@@ -549,9 +596,9 @@ def load_background_css() -> str:
 
         .about-panel-copy {{
             color: rgba(248, 250, 252, 0.78);
-            font-size: 0.86rem;
+            font-size: 0.88rem;
             font-weight: 700;
-            line-height: 1.4;
+            line-height: 1.48;
             margin: 0;
         }}
 
@@ -559,12 +606,13 @@ def load_background_css() -> str:
             background: {about_funnel_background_layers};
             background-position: center;
             background-size: cover;
-            border: 1px solid rgba(34, 197, 94, 0.30);
-            border-radius: 8px;
-            box-shadow: 0 22px 54px rgba(0, 0, 0, 0.32);
-            margin-top: 0.78rem;
+            border: 1px solid rgba(34, 197, 94, 0.20);
+            border-radius: 14px;
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
+            margin-top: 1rem;
             overflow: hidden;
-            padding: clamp(1rem, 2.6vw, 1.55rem);
+            padding: clamp(1.15rem, 2.8vw, 1.75rem);
+            backdrop-filter: blur(18px) saturate(140%);
             position: relative;
         }}
 
@@ -588,10 +636,10 @@ def load_background_css() -> str:
 
         .about-section-copy {{
             color: rgba(248, 250, 252, 0.92);
-            font-size: 0.98rem;
+            font-size: 1rem;
             font-weight: 650;
-            line-height: 1.5;
-            margin: 0.55rem 0 0 0;
+            line-height: 1.58;
+            margin: 0.7rem 0 0 0;
             max-width: 920px;
         }}
 
@@ -602,17 +650,17 @@ def load_background_css() -> str:
 
         .about-funnel-steps {{
             display: grid;
-            gap: 0.62rem;
+            gap: 0.8rem;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            margin-top: 0.9rem;
+            margin-top: 1.05rem;
         }}
 
         .about-step {{
-            background: rgba(2, 6, 23, 0.62);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 8px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-            padding: 0.76rem;
+            background: rgba(2, 6, 23, 0.30);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            padding: 0.92rem 0.88rem;
         }}
 
         .about-step-label {{
@@ -640,20 +688,20 @@ def load_background_css() -> str:
 
         .about-position-grid {{
             display: grid;
-            gap: 0.5rem;
+            gap: 0.72rem;
             grid-template-columns: repeat(5, minmax(0, 1fr));
-            margin-top: 0.88rem;
+            margin-top: 1rem;
         }}
 
         .about-position-card {{
             background:
-                linear-gradient(160deg, rgba(34, 197, 94, 0.18), rgba(56, 189, 248, 0.10)),
-                rgba(2, 6, 23, 0.66);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 8px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                linear-gradient(160deg, rgba(34, 197, 94, 0.08), rgba(56, 189, 248, 0.05)),
+                rgba(2, 6, 23, 0.34);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
             min-height: 96px;
-            padding: 0.64rem;
+            padding: 0.78rem 0.72rem;
         }}
 
         .about-position-icon {{
@@ -679,8 +727,8 @@ def load_background_css() -> str:
 
         .methodology-page {{
             margin: 0 auto;
-            max-width: 1180px;
-            padding: 0.3rem 0 1.4rem 0;
+            max-width: 1260px;
+            padding: 0.55rem 0 1.8rem 0;
         }}
 
         .methodology-hero,
@@ -688,11 +736,35 @@ def load_background_css() -> str:
             background: {about_funnel_background_layers};
             background-position: center;
             background-size: cover;
-            border: 1px solid rgba(34, 197, 94, 0.28);
-            border-radius: 8px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.30);
+            border: 1px solid rgba(34, 197, 94, 0.18);
+            border-radius: 14px;
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
+            backdrop-filter: blur(18px) saturate(140%);
             overflow: hidden;
             position: relative;
+        }}
+
+        .methodology-hero::after,
+        .methodology-stage::after {{
+            background:
+                radial-gradient(circle at 88% 16%, rgba(56, 189, 248, 0.08), transparent 32%),
+                radial-gradient(circle at 12% 82%, rgba(34, 197, 94, 0.08), transparent 30%);
+            content: "";
+            inset: 0;
+            pointer-events: none;
+            position: absolute;
+        }}
+
+        .methodology-stage:nth-of-type(odd) {{
+            background:
+                linear-gradient(135deg, rgba(8, 16, 22, 0.30), rgba(7, 13, 18, 0.16)),
+                {about_funnel_background_layers};
+        }}
+
+        .methodology-stage:nth-of-type(even) {{
+            background:
+                linear-gradient(135deg, rgba(8, 16, 22, 0.24), rgba(7, 13, 18, 0.12)),
+                {about_funnel_background_layers};
         }}
 
         .methodology-hero {{
@@ -717,7 +789,7 @@ def load_background_css() -> str:
             line-height: 0.98;
             margin: 0;
             max-width: 1000px;
-            text-shadow: 0 18px 48px rgba(0, 0, 0, 0.48);
+            text-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
         }}
 
         .methodology-lead {{
@@ -746,12 +818,14 @@ def load_background_css() -> str:
             gap: 0.8rem;
             grid-template-columns: auto minmax(0, 1fr);
             margin-bottom: 0.76rem;
+            position: relative;
+            z-index: 1;
         }}
 
         .methodology-stage-badge {{
             align-items: center;
-            background: rgba(250, 204, 21, 0.14);
-            border: 1px solid rgba(250, 204, 21, 0.34);
+            background: rgba(250, 204, 21, 0.10);
+            border: 1px solid rgba(250, 204, 21, 0.24);
             border-radius: 8px;
             color: #facc15;
             display: flex;
@@ -772,27 +846,52 @@ def load_background_css() -> str:
 
         .methodology-copy {{
             color: rgba(248, 250, 252, 0.88);
-            font-size: 0.96rem;
+            font-size: 0.98rem;
             font-weight: 650;
-            line-height: 1.52;
-            margin: 0.54rem 0 0 0;
+            line-height: 1.58;
+            margin: 0.68rem 0 0 0;
             max-width: 980px;
+            position: relative;
+            z-index: 1;
+        }}
+
+        .methodology-stage-highlights {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.9rem;
+            position: relative;
+            z-index: 1;
+        }}
+
+        .methodology-highlight {{
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            color: rgba(248, 250, 252, 0.90);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            padding: 0.34rem 0.62rem;
+            text-transform: uppercase;
         }}
 
         .methodology-card-grid {{
             display: grid;
-            gap: 0.55rem;
+            gap: 0.82rem;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            margin-top: 0.82rem;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 1;
         }}
 
         .methodology-card {{
-            background: rgba(2, 6, 23, 0.62);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 8px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-            min-height: 116px;
-            padding: 0.72rem;
+            background: rgba(2, 6, 23, 0.30);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            min-height: 126px;
+            padding: 0.92rem 0.88rem;
         }}
 
         .methodology-card-label {{
@@ -813,19 +912,21 @@ def load_background_css() -> str:
 
         .methodology-position-grid {{
             display: grid;
-            gap: 0.5rem;
+            gap: 0.72rem;
             grid-template-columns: repeat(5, minmax(0, 1fr));
-            margin-top: 0.82rem;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 1;
         }}
 
         .methodology-position-card {{
             background:
-                linear-gradient(160deg, rgba(34, 197, 94, 0.18), rgba(56, 189, 248, 0.10)),
-                rgba(2, 6, 23, 0.66);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            border-radius: 8px;
+                linear-gradient(160deg, rgba(34, 197, 94, 0.08), rgba(56, 189, 248, 0.05)),
+                rgba(2, 6, 23, 0.34);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
             min-height: 92px;
-            padding: 0.62rem;
+            padding: 0.78rem 0.72rem;
         }}
 
         .methodology-position-name {{
@@ -3668,7 +3769,9 @@ def render_about_page() -> None:
         """
         <main class="about-page">
             <section class="about-hero">
-                <div class="about-kicker">Scout Tecnico Base BR</div>
+                <div class="about-hero-layout">
+                    <div class="about-hero-copy">
+                        <div class="about-kicker">Scout Tecnico Base BR</div>
                 <h1 class="about-title">Da Estatística Bruta ao Perfil de Campo</h1>
                 <p class="about-copy">
                     O objetivo deste projeto foi criar um modelo de
@@ -3691,6 +3794,25 @@ def render_about_page() -> None:
                     <span class="about-tag">Scouting</span>
                     <span class="about-tag">Personas</span>
                     <span class="about-tag">Análise de Mercado</span>
+                </div>
+                    </div>
+                    <aside class="about-hero-aside">
+                        <article class="about-hero-stat">
+                            <div class="about-hero-stat-label">Base analisada</div>
+                            <div class="about-hero-stat-value">2 torneios</div>
+                            <div class="about-hero-stat-copy">Brasileirao Sub-20 + Copinha em uma leitura unica.</div>
+                        </article>
+                        <article class="about-hero-stat">
+                            <div class="about-hero-stat-label">Base final</div>
+                            <div class="about-hero-stat-value">2.137 atletas</div>
+                            <div class="about-hero-stat-copy">Recorte com corte de 90 minutos para manter a amostragem justa.</div>
+                        </article>
+                        <article class="about-hero-stat">
+                            <div class="about-hero-stat-label">Entrega</div>
+                            <div class="about-hero-stat-value">Personas</div>
+                            <div class="about-hero-stat-copy">Cada jogador ganha um retrato tactico por funcao.</div>
+                        </article>
+                    </aside>
                 </div>
             </section>
             <section class="about-funnel">
@@ -3809,6 +3931,11 @@ def render_methodology_page() -> None:
                         </p>
                     </div>
                 </div>
+                <div class="methodology-stage-highlights">
+                    <span class="methodology-highlight">API SofaScore</span>
+                    <span class="methodology-highlight">73 metricas</span>
+                    <span class="methodology-highlight">16 categorias</span>
+                </div>
                 <div class="methodology-card-grid">
                     <article class="methodology-card">
                         <div class="methodology-card-label">Mapeamento por Blocos</div>
@@ -3850,6 +3977,11 @@ def render_methodology_page() -> None:
                             aplicamos uma linha de corte realista de mercado.
                         </p>
                     </div>
+                </div>
+                <div class="methodology-stage-highlights">
+                    <span class="methodology-highlight">90 minutos</span>
+                    <span class="methodology-highlight">amostragem justa</span>
+                    <span class="methodology-highlight">por posicao</span>
                 </div>
                 <div class="methodology-card-grid">
                     <article class="methodology-card">
@@ -3914,6 +4046,11 @@ def render_methodology_page() -> None:
                         </p>
                     </div>
                 </div>
+                <div class="methodology-stage-highlights">
+                    <span class="methodology-highlight">scores</span>
+                    <span class="methodology-highlight">eficiencia</span>
+                    <span class="methodology-highlight">peso negativo</span>
+                </div>
                 <div class="methodology-card-grid">
                     <article class="methodology-card">
                         <div class="methodology-card-label">Padronização por 90 Minutos</div>
@@ -3950,6 +4087,11 @@ def render_methodology_page() -> None:
                         </p>
                     </div>
                 </div>
+                <div class="methodology-stage-highlights">
+                    <span class="methodology-highlight">StandardScaler</span>
+                    <span class="methodology-highlight">Z-Score</span>
+                    <span class="methodology-highlight">mesma regua</span>
+                </div>
                 <p class="methodology-copy">
                     <strong>Normalização Posicional (Z-Score):</strong> através do modelo estatístico
                     <strong> StandardScaler</strong>, transformamos os scores técnicos de cada atleta
@@ -3970,6 +4112,11 @@ def render_methodology_page() -> None:
                             os jogadores por semelhança de estilo.
                         </p>
                     </div>
+                </div>
+                <div class="methodology-stage-highlights">
+                    <span class="methodology-highlight">K-Means</span>
+                    <span class="methodology-highlight">curvatura maxima</span>
+                    <span class="methodology-highlight">personas</span>
                 </div>
                 <p class="methodology-copy">
                     <strong>Critério Matemático da Curvatura Máxima:</strong> para definir em
