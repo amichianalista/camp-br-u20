@@ -377,7 +377,11 @@ def first_existing_column(columns: Iterable[str], candidates: Iterable[str]) -> 
 
 
 def render_html(markup: str) -> None:
-    st.markdown(textwrap.dedent(markup).strip(), unsafe_allow_html=True)
+    # Streamlit pode interpretar HTML com indentacao residual como bloco de codigo.
+    normalized_markup = "\n".join(
+        line.lstrip() for line in textwrap.dedent(markup).strip().splitlines()
+    )
+    st.markdown(normalized_markup, unsafe_allow_html=True)
 
 
 def load_background_css() -> str:
