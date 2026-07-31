@@ -746,6 +746,11 @@ def load_background_css() -> str:
             padding: 0.5rem;
         }}
 
+        div[role="dialog"] div[data-testid="stPlotlyChart"] {{
+            max-width: 100%;
+            min-height: 280px;
+        }}
+
         .score-support-panel {{
             margin-top: 0.72rem;
             padding: 0.88rem;
@@ -1667,6 +1672,22 @@ def fetch_rows_from_supabase_api(schema: str, table: str) -> list[dict]:
     return rows
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def load_score_table_rows(score_table: str | None) -> list[dict]:
+    if not score_table:
+        return []
+
+    schema = get_score_schema()
+    try:
+        return (
+            fetch_rows_from_database(schema, score_table)
+            if get_database_url()
+            else fetch_rows_from_supabase_api(schema, score_table)
+        )
+    except Exception:  # noqa: BLE001
+        return []
+
+
 @st.cache_data(ttl=300, show_spinner="Carregando dados do Supabase...")
 def load_table_data() -> tuple[pd.DataFrame, str]:
     schema = get_score_schema()
@@ -2428,6 +2449,207 @@ def score_radar_figure(categories: list[dict]) -> go.Figure:
     return figure
 
 
+def cluster_comparison_rows(
+    player_id: object,
+    score_rows: list[dict],
+    score_table: str | None,
+) -> list[dict]:
+    if not score_rows or not score_table:
+        return []
+
+    selected_row = score_rows[0]
+    selected_player_key = storage_path_id(player_id)
+    cluster_name = first_valid_text(selected_row.get("persona"), selected_row.get("cluster"), fallback="")
+    if not selected_player_key or not cluster_name:
+        return []
+
+    cluster_key = normalize_search_text(cluster_name)
+    cluster_rows = [
+        row
+        for row in load_score_table_rows(score_table)
+        if normalize_search_text(first_valid_text(row.get("persona"), row.get("cluster"), fallback="")) == cluster_key
+    ]
+    if len(cluster_rows) < 2:
+        return []
+
+    comparison_rows = []
+    for category in score_categories(score_rows):
+        suffix = category.get("suffix")
+        selected_percentile = category.get("percentile")
+        if not suffix or pd.isna(selected_percentile):
+            continue
+
+        percentile_column = f"{SCORE_PERCENTILE_PREFIX}{suffix}"
+        values = []
+        other_values = []
+        for row in cluster_rows:
+            value = row.get(percentile_column)
+            if pd.isna(value):
+                continue
+
+            try:
+                percentile_value = max(0, min(100, float(value)))
+            except (TypeError, ValueError):
+                continue
+
+            values.append(percentile_value)
+            if storage_path_id(row.get(SCORE_ID_COLUMN)) != selected_player_key:
+                other_values.append(percentile_value)
+
+        if not values:
+            continue
+
+        try:
+            selected_value = max(0, min(100, float(selected_percentile)))
+        except (TypeError, ValueError):
+            continue
+
+        median_value = float(np.median(values))
+        comparison_rows.append(
+            {
+                "name": category["name"],
+                "values": values,
+                "other_values": other_values,
+                "selected": selected_value,
+                "median": median_value,
+                "gap": selected_value - median_value,
+            }
+        )
+
+    return comparison_rows
+
+
+def cluster_comparison_label(gap: float) -> str:
+    if gap >= 12:
+        return "acima do cluster"
+    if gap <= -12:
+        return "abaixo do cluster"
+    return "na faixa do cluster"
+
+
+def cluster_comparison_figure(comparison_rows: list[dict]) -> go.Figure:
+    figure = go.Figure()
+    ordered_rows = list(reversed(comparison_rows))
+
+    for row in ordered_rows:
+        values = row["values"]
+        figure.add_trace(
+            go.Box(
+                x=values,
+                y=[row["name"]] * len(values),
+                orientation="h",
+                boxmean=False,
+                boxpoints="all",
+                fillcolor="rgba(56, 189, 248, 0.10)",
+                jitter=0.36,
+                line={"color": "rgba(56, 189, 248, 0.42)", "width": 1.4},
+                marker={
+                    "color": "rgba(226, 232, 240, 0.36)",
+                    "line": {"color": "rgba(15, 23, 42, 0.90)", "width": 1},
+                    "size": 6,
+                },
+                name=row["name"],
+                pointpos=0,
+                showlegend=False,
+                whiskerwidth=0.35,
+                hovertemplate=(
+                    f"{html.escape(row['name'])}<br>"
+                    "Jogador do cluster: %{x:.1f}%<extra></extra>"
+                ),
+            )
+        )
+
+    figure.add_trace(
+        go.Scatter(
+            x=[row["selected"] for row in ordered_rows],
+            y=[row["name"] for row in ordered_rows],
+            customdata=[
+                [format_score(row["median"]), cluster_comparison_label(row["gap"])]
+                for row in ordered_rows
+            ],
+            mode="markers+text",
+            marker={
+                "color": "#facc15",
+                "line": {"color": "#052e16", "width": 2},
+                "size": 16,
+                "symbol": "diamond",
+            },
+            text=[format_percentile(row["selected"]) for row in ordered_rows],
+            textfont={"color": "#f8fafc", "size": 13},
+            textposition="middle right",
+            hovertemplate=(
+                "Selecionado: %{x:.1f}%<br>"
+                "Mediana do cluster: %{customdata[0]}%<br>"
+                "%{customdata[1]}<extra></extra>"
+            ),
+            name="Selecionado",
+            showlegend=False,
+        )
+    )
+
+    figure.update_layout(
+        height=max(260, 95 * len(ordered_rows)),
+        margin={"l": 142, "r": 58, "t": 18, "b": 34},
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(2, 6, 23, 0.20)",
+        hoverlabel={
+            "bgcolor": "rgba(7, 13, 18, 0.96)",
+            "bordercolor": "rgba(34, 197, 94, 0.45)",
+            "font": {"color": "#f8fafc", "size": 13},
+        },
+        xaxis={
+            "range": [0, 104],
+            "tickmode": "array",
+            "tickvals": [0, 25, 50, 75, 100],
+            "ticksuffix": "%",
+            "gridcolor": "rgba(148, 163, 184, 0.12)",
+            "linecolor": "rgba(255, 255, 255, 0.12)",
+            "tickfont": {"color": "rgba(248, 250, 252, 0.70)", "size": 10},
+            "zeroline": False,
+        },
+        yaxis={
+            "color": "#f8fafc",
+            "gridcolor": "rgba(255, 255, 255, 0.06)",
+            "tickfont": {"color": "#f8fafc", "size": 12},
+        },
+    )
+    return figure
+
+
+def render_cluster_comparison(
+    player_id: object,
+    score_rows: list[dict],
+    score_table: str | None,
+) -> None:
+    comparison_rows = cluster_comparison_rows(player_id, score_rows, score_table)
+    if not comparison_rows:
+        return
+
+    cluster_name = first_valid_text(
+        score_rows[0].get("persona") if score_rows else None,
+        score_rows[0].get("cluster") if score_rows else None,
+        fallback="cluster",
+    )
+    st.markdown(
+        f"""
+        <section class="dialog-bio-shell">
+            <div class="dialog-raw-title">
+                <div>
+                    <div class="player-kicker">Comparativo no cluster</div>
+                    <p class="section-note">Jogador selecionado contra atletas do tipo {html.escape(cluster_name)}</p>
+                </div>
+            </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.plotly_chart(
+        cluster_comparison_figure(comparison_rows),
+        use_container_width=True,
+        config={"displayModeBar": False, "responsive": True},
+    )
+
+
 def render_score_profile_section(player_id: object) -> None:
     score_rows, score_table = load_player_score_rows_with_table(player_id)
     categories = score_categories(score_rows)
@@ -2711,6 +2933,7 @@ def render_player_score_content(
     )
 
     score_rows, score_table = load_player_score_rows_with_table(player_id)
+    render_cluster_comparison(player_id, score_rows, score_table)
     raw_metrics_html = raw_metric_cards_html(
         load_player_raw_metric_rows_from_table(player_id, score_table),
         score_rows,
