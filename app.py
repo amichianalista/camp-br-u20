@@ -20,7 +20,7 @@ from supabase import Client, create_client
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
-BACKGROUND_PATH = ROOT_DIR / "assets" / "background.png"
+BACKGROUND_PATH = ROOT_DIR / "assets" / "0002.png"
 ABOUT_FUNNEL_BACKGROUND_PATH = ROOT_DIR / "assets" / "0002.png"
 TEAM_LOGO_BUCKET = "jogadores-br-sub-20"
 TEAM_LOGO_FOLDER = "teams"
