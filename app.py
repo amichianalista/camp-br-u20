@@ -8,7 +8,6 @@ import unicodedata
 from datetime import date
 from pathlib import Path
 from typing import Iterable
-from urllib.parse import urlencode
 
 import numpy as np
 import pandas as pd
@@ -258,7 +257,6 @@ PAGE_METODOLOGIA = "Metodologia"
 PAGE_PERFIL_INDIVIDUAL = "Perfil Individual"
 PAGE_PERFIL_FUNCAO = "Perfil por Função"
 APP_PAGES = [PAGE_SOBRE, PAGE_METODOLOGIA, PAGE_PERFIL_INDIVIDUAL, PAGE_PERFIL_FUNCAO]
-PLAYER_DETAIL_VIEW = "perfil_funcao_jogador"
 DEFAULT_TEAM_NAME = "AmÃ©rica Mineiro U20"
 DEFAULT_TEAM_ALIASES = (
     DEFAULT_TEAM_NAME,
@@ -854,16 +852,16 @@ def load_background_css() -> str:
             border-radius: 8px;
             color: #facc15;
             display: flex;
-            font-size: 1.15rem;
+            font-size: 1.36rem;
             font-weight: 950;
-            height: 2.55rem;
+            height: 2.9rem;
             justify-content: center;
-            width: 2.55rem;
+            width: 2.9rem;
         }}
 
         .methodology-stage-title {{
             color: #f8fafc;
-            font-size: clamp(1.18rem, 2vw, 1.8rem);
+            font-size: clamp(1.55rem, 2.65vw, 2.45rem);
             font-weight: 950;
             line-height: 1.05;
             margin: 0;
@@ -922,7 +920,7 @@ def load_background_css() -> str:
 
         .methodology-card-label {{
             color: #facc15;
-            font-size: 0.64rem;
+            font-size: 0.78rem;
             font-weight: 950;
             margin-bottom: 0.3rem;
             text-transform: uppercase;
@@ -959,14 +957,14 @@ def load_background_css() -> str:
 
         .methodology-position-name {{
             color: rgba(248, 250, 252, 0.84);
-            font-size: 0.68rem;
+            font-size: 0.82rem;
             font-weight: 950;
             text-transform: uppercase;
         }}
 
         .methodology-position-value {{
             color: #f8fafc;
-            font-size: 1.32rem;
+            font-size: 1.58rem;
             font-weight: 950;
             line-height: 1;
             margin-top: 0.28rem;
@@ -1005,14 +1003,14 @@ def load_background_css() -> str:
             color: #f8fafc !important;
             display: flex !important;
             flex-direction: column;
-            font-size: clamp(1.35rem, 2vw, 2.05rem) !important;
+            font-size: clamp(1.78rem, 2.75vw, 2.75rem) !important;
             font-weight: 950 !important;
-            gap: 0.52rem;
+            gap: 0.62rem;
             justify-content: center;
             letter-spacing: 0;
             line-height: 1.05;
-            min-height: 6.1rem !important;
-            padding: 1.1rem 1.45rem 1rem 1.45rem !important;
+            min-height: 7.2rem !important;
+            padding: 1.25rem 1.65rem 1.12rem 1.65rem !important;
             position: relative;
             text-align: center;
         }}
@@ -1025,7 +1023,7 @@ def load_background_css() -> str:
             color: rgba(248, 250, 252, 0.92);
             content: "Ver detalhes  ↓";
             display: inline-flex;
-            font-size: 0.76rem;
+            font-size: 0.84rem;
             font-weight: 950;
             justify-content: center;
             letter-spacing: 0;
@@ -1047,17 +1045,26 @@ def load_background_css() -> str:
         }}
 
         div[data-testid="column"]:has(.methodology-close-anchor) div[data-testid="stButton"] {{
+            background: transparent !important;
             position: relative;
             transform: translate(-2.35rem, 0.78rem);
             width: 2rem;
         }}
 
-        div[data-testid="column"]:has(.methodology-close-anchor) div[data-testid="stButton"] > button {{
+        div[data-testid="column"]:has(.methodology-close-anchor) div[data-testid="stButton"] button {{
+            background: rgba(2, 6, 23, 0.64) !important;
+            border: 1px solid rgba(255, 255, 255, 0.22) !important;
             border-radius: 999px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+            color: #f8fafc !important;
             height: 2rem;
             min-height: 2rem;
             padding: 0;
             width: 2rem !important;
+        }}
+
+        div[data-testid="column"]:has(.methodology-close-anchor) div[data-testid="stButton"] button * {{
+            color: #f8fafc !important;
         }}
 
         [data-testid="stSidebar"] label p,
@@ -1863,23 +1870,6 @@ def load_background_css() -> str:
             width: 0;
         }}
 
-        .cluster-close-visual {{
-            align-items: center;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.20);
-            border-radius: 999px;
-            color: #f8fafc;
-            display: flex;
-            font-size: 1rem;
-            font-weight: 800;
-            height: 2rem;
-            justify-content: center;
-            position: absolute;
-            right: 0.75rem;
-            top: 0.75rem;
-            width: 2rem;
-        }}
-
         div[data-testid="column"]:has(.cluster-close-anchor) {{
             position: relative;
             z-index: 5;
@@ -1901,69 +1891,36 @@ def load_background_css() -> str:
 
         div[data-testid="column"]:has(.cluster-close-anchor) div[data-testid="stButton"] button,
         div[data-testid="stElementContainer"]:has(.cluster-close-anchor) + div[data-testid="stButton"] button {{
-            background: transparent !important;
-            border-color: transparent !important;
+            background: rgba(2, 6, 23, 0.64) !important;
+            border-color: rgba(255, 255, 255, 0.22) !important;
             border-radius: 999px;
-            box-shadow: none;
-            color: transparent !important;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+            color: #f8fafc !important;
             font-size: 1rem;
             font-weight: 800;
             height: 2rem;
             min-height: 2rem;
-            opacity: 0;
+            opacity: 1;
             padding: 0;
             width: 2rem !important;
         }}
 
         div[data-testid="column"]:has(.cluster-close-anchor) div[data-testid="stButton"] button *,
-        div[data-testid="stElementContainer"]:has(.cluster-close-anchor) + div[data-testid="stButton"] button *,
-        div[data-testid="column"]:has(.player-close-anchor) div[data-testid="stButton"] button *,
-        div[data-testid="stElementContainer"]:has(.player-close-anchor) + div[data-testid="stButton"] button * {{
-            color: transparent !important;
+        div[data-testid="stElementContainer"]:has(.cluster-close-anchor) + div[data-testid="stButton"] button * {{
+            color: #f8fafc !important;
         }}
 
         div[data-testid="column"]:has(.cluster-close-anchor) div[data-testid="stButton"] button:hover,
         div[data-testid="stElementContainer"]:has(.cluster-close-anchor) + div[data-testid="stButton"] button:hover {{
-            background: transparent !important;
-            border-color: transparent !important;
-            color: transparent !important;
-            opacity: 0;
+            background: rgba(34, 197, 94, 0.24) !important;
+            border-color: rgba(250, 204, 21, 0.52) !important;
+            color: #f8fafc !important;
+            opacity: 1;
             transform: none;
         }}
 
         .cluster-player-row {{
             margin-top: -0.42rem;
-        }}
-
-        .cluster-player-link {{
-            align-items: center;
-            background:
-                linear-gradient(135deg, rgba(34, 197, 94, 0.22), rgba(56, 189, 248, 0.13)),
-                rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(34, 197, 94, 0.32);
-            border-radius: 8px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 22px rgba(0, 0, 0, 0.16);
-            color: #f8fafc !important;
-            display: flex;
-            font-size: 0.86rem;
-            font-weight: 900;
-            justify-content: center;
-            line-height: 1.15;
-            margin-bottom: 0.45rem;
-            min-height: 2.7rem;
-            padding: 0.55rem 0.7rem;
-            text-align: center;
-            text-decoration: none !important;
-            width: 100%;
-        }}
-
-        .cluster-player-link:hover {{
-            background:
-                linear-gradient(135deg, rgba(34, 197, 94, 0.32), rgba(56, 189, 248, 0.18)),
-                rgba(255, 255, 255, 0.10);
-            border-color: rgba(250, 204, 21, 0.58);
-            color: #f8fafc !important;
-            transform: translateY(-1px);
         }}
 
         .player-list-title {{
@@ -2023,84 +1980,6 @@ def load_background_css() -> str:
             overflow: hidden;
             padding: 0.65rem;
             position: relative;
-        }}
-
-        .player-close-visual {{
-            align-items: center;
-            background: rgba(2, 6, 23, 0.70);
-            border: 1px solid rgba(255, 255, 255, 0.24);
-            border-radius: 999px;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.26);
-            color: #f8fafc;
-            display: flex;
-            font-size: 1rem;
-            font-weight: 900;
-            height: 2rem;
-            justify-content: center;
-            position: absolute;
-            right: 0.55rem;
-            top: 0.55rem;
-            width: 2rem;
-            z-index: 4;
-        }}
-
-        .player-close-anchor {{
-            height: 0;
-            width: 0;
-        }}
-
-        div[data-testid="column"]:has(.player-close-anchor) {{
-            position: relative;
-            z-index: 8;
-        }}
-
-        div[data-testid="column"]:has(.player-close-anchor) div[data-testid="stButton"] {{
-            background: transparent !important;
-            position: relative;
-            transform: translate(-2.55rem, 0.55rem);
-            width: 2rem;
-        }}
-
-        div[data-testid="stElementContainer"]:has(.player-close-anchor) + div[data-testid="stButton"] {{
-            background: transparent !important;
-            position: relative;
-            transform: translate(-2.55rem, 0.55rem);
-            width: 2rem;
-        }}
-
-        div[data-testid="column"]:has(.player-close-anchor) div[data-testid="stButton"] button,
-        div[data-testid="stElementContainer"]:has(.player-close-anchor) + div[data-testid="stButton"] button {{
-            background: transparent !important;
-            border-color: transparent !important;
-            border-radius: 999px;
-            box-shadow: none;
-            color: transparent !important;
-            font-size: 1rem;
-            font-weight: 900;
-            height: 2rem;
-            min-height: 2rem;
-            opacity: 0;
-            padding: 0;
-            width: 2rem !important;
-        }}
-
-        div[data-testid="column"]:has(.player-close-anchor) div[data-testid="stButton"] button:hover,
-        div[data-testid="stElementContainer"]:has(.player-close-anchor) + div[data-testid="stButton"] button:hover {{
-            background: transparent !important;
-            border-color: transparent !important;
-            color: transparent !important;
-            opacity: 0;
-            transform: none;
-        }}
-
-        div[data-testid="column"]:has(.player-card-anchor) .dialog-player-card {{
-            width: calc(100% + 2.65rem);
-        }}
-
-        div[data-testid="column"]:has(.player-card-anchor) .cluster-compare-shell,
-        div[data-testid="column"]:has(.player-card-anchor) .score-support-panel,
-        div[data-testid="column"]:has(.player-card-anchor) .player-score-shell {{
-            width: calc(100% + 2.65rem);
         }}
 
         .dialog-bio-shell {{
@@ -2611,8 +2490,8 @@ def load_background_css() -> str:
             }}
 
             div[data-testid="stElementContainer"]:has(.methodology-stage-trigger-anchor) + div[data-testid="stButton"] > button {{
-                font-size: clamp(1.05rem, 6vw, 1.48rem) !important;
-                min-height: 5.7rem !important;
+                font-size: clamp(1.32rem, 6.8vw, 1.86rem) !important;
+                min-height: 6.45rem !important;
                 padding-left: 0.85rem !important;
                 padding-right: 0.85rem !important;
             }}
@@ -3850,24 +3729,6 @@ def key_fragment(value: object) -> str:
     return "".join(char if char.isalnum() else "_" for char in text).strip("_") or "item"
 
 
-def query_param_text(name: str) -> str:
-    value = st.query_params.get(name)
-    if isinstance(value, list):
-        value = value[0] if value else ""
-    return "" if value is None else str(value).strip()
-
-
-def is_player_detail_view() -> bool:
-    return query_param_text("view") == PLAYER_DETAIL_VIEW
-
-
-def player_detail_url(player_id: object) -> str:
-    player_id_text = storage_path_id(player_id)
-    if not player_id_text:
-        return "#"
-    return "?" + urlencode({"view": PLAYER_DETAIL_VIEW, "player_id": player_id_text})
-
-
 def render_score_cards(score_cards: list[dict]) -> str:
     if not score_cards:
         return ""
@@ -3983,7 +3844,6 @@ def dialog_score_season_summary_html(
 
 def render_player_score_content(
     player_info: dict,
-    show_close_visual: bool = False,
 ) -> None:
     player_name = clean_text(player_info.get("name"), "Jogador")
     team_name = clean_text(player_info.get("team"), "Time nao informado")
@@ -4014,12 +3874,9 @@ def render_player_score_content(
         "</div>"
         for label, value in quick_facts
     )
-    close_visual_html = '<span class="player-close-visual">&times;</span>' if show_close_visual else ""
-
     st.markdown(
         f"""
         <section class="dialog-player-card">
-            {close_visual_html}
             <div class="dialog-player-photo">{player_photo_html}</div>
             <div class="dialog-player-meta">
                 <div class="player-kicker">Jogador selecionado</div>
@@ -4045,19 +3902,9 @@ def render_player_score_content(
     render_score_profile_section(player_id, show_radar=False, compact_spacing=True)
 
 
+@st.dialog("Detalhes do jogador", width="large")
 def render_player_score_dialog(player_info: dict) -> None:
-    player_key = key_fragment(player_info.get("player_id") or player_info.get("name") or "atleta")
-    content_column, close_column = st.columns([0.965, 0.035], gap="small")
-
-    with content_column:
-        st.markdown('<div class="player-card-anchor"></div>', unsafe_allow_html=True)
-        render_player_score_content(player_info, show_close_visual=True)
-
-    with close_column:
-        st.markdown('<div class="player-close-anchor"></div>', unsafe_allow_html=True)
-        if st.button("×", key=f"close_player_{player_key}", help="Fechar jogador"):
-            st.session_state.pop("perfil_funcao_player", None)
-            st.rerun()
+    render_player_score_content(player_info)
 
 
 def player_info_from_function_row(
@@ -4318,7 +4165,7 @@ def render_methodology_stage(stage: dict[str, object]) -> None:
         )
     with close_column:
         st.markdown('<div class="methodology-close-anchor"></div>', unsafe_allow_html=True)
-        if st.button("×", key=f"methodology_close_{stage_id}", type="secondary", help="Fechar etapa"):
+        if st.button("×", key=f"methodology_close_{stage_id}", type="primary", help="Fechar etapa"):
             st.session_state.pop("methodology_open_stage", None)
             st.rerun()
 
@@ -4535,7 +4382,6 @@ def render_selected_cluster_players(
         st.markdown(
             f"""
             <section class="selected-cluster">
-                <span class="cluster-close-visual">Ã—</span>
                 <div class="player-kicker">Cluster selecionado</div>
                 <div class="player-list-title">{html.escape(selected_function)} | {html.escape(selected_cluster_name)}</div>
                 {cluster_description_html}
@@ -4545,7 +4391,12 @@ def render_selected_cluster_players(
         )
     with close_column:
         st.markdown('<div class="cluster-close-anchor"></div>', unsafe_allow_html=True)
-        if st.button("Ã—", key=f"close_cluster_{key_fragment(selected_function)}", help="Fechar cluster"):
+        if st.button(
+            "×",
+            key=f"close_cluster_{key_fragment(selected_function)}",
+            help="Fechar cluster",
+            type="primary",
+        ):
             st.session_state.pop("perfil_funcao_cluster", None)
             st.session_state.pop("perfil_funcao_player", None)
             st.rerun()
@@ -4565,16 +4416,24 @@ def render_selected_cluster_players(
         player_name = row_value(row, player_column)
         team_name = row_value(row, team_column)
         with player_columns[button_index % len(player_columns)]:
-            detail_url = player_detail_url(row[SCORE_ID_COLUMN] if SCORE_ID_COLUMN in row.index else None)
-            st.markdown(
-                (
-                    f'<a class="cluster-player-link" href="{html.escape(detail_url, quote=True)}" '
-                    'target="_blank" rel="noopener noreferrer">'
-                    f"{html.escape(player_name)} | {html.escape(team_name)}"
-                    "</a>"
+            if st.button(
+                f"{player_name} | {team_name}",
+                key=(
+                    "player_"
+                    f"{key_fragment(selected_function)}_"
+                    f"{key_fragment(selected_cluster_name)}_"
+                    f"{row_index}"
                 ),
-                unsafe_allow_html=True,
-            )
+            ):
+                render_player_score_dialog(
+                    player_info_from_function_row(
+                        row,
+                        selected_function,
+                        selected_cluster_name,
+                        team_column,
+                        player_column,
+                    )
+                )
     st.markdown("</div>", unsafe_allow_html=True)
 
 
@@ -4652,62 +4511,17 @@ def render_function_profile_page(
         st.info("Selecione um cluster para ver os jogadores.")
 
 
-def render_function_player_detail_page(
-    data: pd.DataFrame,
-    team_column: str,
-    player_column: str,
-    position_column: str | None,
-) -> None:
-    selected_player_id = query_param_text("player_id")
-    if not selected_player_id:
-        st.error("Nao encontrei o jogador solicitado.")
-        return
-
-    source = prepare_function_profile_data(data, position_column)
-    source["_player_id_text"] = source[SCORE_ID_COLUMN].map(storage_path_id)
-    player_rows = source[source["_player_id_text"] == selected_player_id].copy()
-    if player_rows.empty:
-        st.error("Nao encontrei esse jogador na base carregada.")
-        return
-
-    player_row = player_rows.iloc[0]
-    selected_function = clean_text(player_row["_function_label"], "Funcao nao informada")
-    selected_cluster_name = clean_text(player_row["_cluster_text"], "-")
-    player_info = player_info_from_function_row(
-        player_row,
-        selected_function,
-        selected_cluster_name,
-        team_column,
-        player_column,
-    )
-
-    st.markdown(
-        """
-        <section class="function-hero">
-            <div class="main-title">Detalhes do jogador</div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-    render_player_score_content(player_info)
-
-
 st.markdown(load_background_css(), unsafe_allow_html=True)
 
-player_detail_view = is_player_detail_view()
+with st.sidebar:
+    st.markdown('<div class="nav-title">Paginas</div>', unsafe_allow_html=True)
+    selected_page = st.radio("Navegacao", APP_PAGES, label_visibility="collapsed")
 
-if player_detail_view:
-    selected_page = PAGE_PERFIL_FUNCAO
-else:
-    with st.sidebar:
-        st.markdown('<div class="nav-title">Paginas</div>', unsafe_allow_html=True)
-        selected_page = st.radio("Navegacao", APP_PAGES, label_visibility="collapsed")
-
-if selected_page == PAGE_SOBRE and not player_detail_view:
+if selected_page == PAGE_SOBRE:
     render_about_page()
     st.stop()
 
-if selected_page == PAGE_METODOLOGIA and not player_detail_view:
+if selected_page == PAGE_METODOLOGIA:
     render_methodology_page()
     st.stop()
 
@@ -4740,10 +4554,6 @@ if not player_column or player_column not in data.columns:
 
 if SCORE_ID_COLUMN not in data.columns:
     st.error("Nao encontrei a coluna jogador_id para relacionar bio e scores.")
-    st.stop()
-
-if player_detail_view:
-    render_function_player_detail_page(data, team_column, player_column, position_column)
     st.stop()
 
 if selected_page == PAGE_PERFIL_FUNCAO:
