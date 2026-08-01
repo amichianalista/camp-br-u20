@@ -158,8 +158,6 @@ RAW_METRIC_GROUPS_BY_TABLE = {
             "passes_chave",
             "cruzamentos_certos",
             "passes_para_assistencia",
-        ],
-        "finalizacao": [
             "gols",
             "finalizacoes",
             "penaltis_cobrados",
@@ -983,6 +981,53 @@ def load_background_css() -> str:
             height: 0;
         }}
 
+        .methodology-stage-trigger-anchor {{
+            height: 0;
+        }}
+
+        div[data-testid="stElementContainer"]:has(.methodology-stage-trigger-anchor) + div[data-testid="stButton"] {{
+            margin-bottom: 0.34rem;
+        }}
+
+        div[data-testid="stElementContainer"]:has(.methodology-stage-trigger-anchor) + div[data-testid="stButton"] > button {{
+            background:
+                linear-gradient(135deg, rgba(132, 255, 147, 0.30), rgba(56, 189, 248, 0.18)),
+                rgba(255, 255, 255, 0.10) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            border-radius: 14px !important;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.14),
+                0 16px 34px rgba(0, 0, 0, 0.18) !important;
+            color: #f8fafc !important;
+            font-size: clamp(1.05rem, 1.2vw, 1.18rem) !important;
+            font-weight: 900 !important;
+            letter-spacing: -0.01em;
+            line-height: 1.18;
+            min-height: 4.25rem !important;
+            padding: 1rem 1.4rem !important;
+        }}
+
+        div[data-testid="stElementContainer"]:has(.methodology-stage-trigger-anchor) + div[data-testid="stButton"] > button:hover {{
+            background:
+                linear-gradient(135deg, rgba(132, 255, 147, 0.38), rgba(56, 189, 248, 0.23)),
+                rgba(255, 255, 255, 0.13) !important;
+            border-color: rgba(250, 204, 21, 0.52) !important;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.18),
+                0 20px 38px rgba(0, 0, 0, 0.22) !important;
+            transform: translateY(-1px);
+        }}
+
+        .methodology-stage-trigger-subtitle {{
+            color: rgba(248, 250, 252, 0.76);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            margin: -0.08rem 0 0.8rem 0;
+            text-align: center;
+            text-transform: uppercase;
+        }}
+
         div[data-testid="column"]:has(.methodology-close-anchor) div[data-testid="stButton"] {{
             position: relative;
             transform: translate(-2.35rem, 0.78rem);
@@ -1267,6 +1312,10 @@ def load_background_css() -> str:
 
         .score-style-section {{
             margin-top: 0.75rem;
+        }}
+
+        .score-style-section-compact {{
+            margin-top: 0.24rem;
         }}
 
         .score-style-heading {{
@@ -1890,11 +1939,11 @@ def load_background_css() -> str:
             border: 1px solid rgba(255, 255, 255, 0.14);
             border-radius: 8px;
             display: grid;
-            gap: 0.85rem;
+            gap: 0.65rem;
             grid-template-columns: 150px minmax(0, 1fr);
-            margin-bottom: 0.65rem;
+            margin-bottom: 0.56rem;
             overflow: hidden;
-            padding: 0.68rem;
+            padding: 0.65rem;
         }}
 
         .dialog-bio-shell {{
@@ -1910,9 +1959,9 @@ def load_background_css() -> str:
                 linear-gradient(135deg, rgba(8, 16, 22, 0.94), rgba(7, 13, 18, 0.72));
             border: 1px solid rgba(34, 197, 94, 0.20);
             border-radius: 8px;
-            margin-bottom: 0.7rem;
+            margin-bottom: 0.54rem;
             overflow: hidden;
-            padding: 0.72rem;
+            padding: 0.68rem;
             position: relative;
         }}
 
@@ -2161,14 +2210,14 @@ def load_background_css() -> str:
         .dialog-player-meta {{
             align-content: start;
             display: grid;
-            gap: 0.56rem;
+            gap: 0.46rem;
         }}
 
         .dialog-quick-facts {{
             display: grid;
-            gap: 0.42rem;
+            gap: 0.38rem;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            margin-top: 0.4rem;
+            margin-top: 0.24rem;
             max-width: 820px;
         }}
 
@@ -2178,8 +2227,8 @@ def load_background_css() -> str:
                 rgba(255, 255, 255, 0.055);
             border: 1px solid rgba(34, 197, 94, 0.26);
             border-radius: 8px;
-            margin-top: 0.35rem;
-            padding: 0.58rem 0.68rem;
+            margin-top: 0.2rem;
+            padding: 0.52rem 0.62rem;
         }}
 
         .dialog-cluster-label {{
@@ -2812,8 +2861,17 @@ def load_player_score_rows(player_id: object) -> list[dict]:
     return rows
 
 
-def wide_score_categories(score_rows: list[dict]) -> list[dict]:
+def is_lateral_score_context(score_rows: list[dict], score_table: str | None = None) -> bool:
+    if score_table == "fact.scores_players.laterais":
+        return True
+
+    position = score_position_from_rows(score_rows, fallback="")
+    return normalize_search_text(position) in {"lateral", "laterais"}
+
+
+def wide_score_categories(score_rows: list[dict], score_table: str | None = None) -> list[dict]:
     categories = []
+    lateral_context = is_lateral_score_context(score_rows, score_table)
     for row in score_rows:
         for column, value in row.items():
             if not column.startswith(SCORE_VALUE_PREFIX) or pd.isna(value):
@@ -2821,6 +2879,8 @@ def wide_score_categories(score_rows: list[dict]) -> list[dict]:
 
             suffix = column.removeprefix(SCORE_VALUE_PREFIX)
             if is_internal_id_field(suffix):
+                continue
+            if lateral_context and suffix == "finalizacao":
                 continue
 
             percentile = row.get(f"{SCORE_PERCENTILE_PREFIX}{suffix}")
@@ -2865,8 +2925,8 @@ def old_score_categories(score_rows: list[dict]) -> list[dict]:
     ]
 
 
-def score_categories(score_rows: list[dict]) -> list[dict]:
-    categories = wide_score_categories(score_rows)
+def score_categories(score_rows: list[dict], score_table: str | None = None) -> list[dict]:
+    categories = wide_score_categories(score_rows, score_table)
     return categories if categories else old_score_categories(score_rows)
 
 
@@ -2917,23 +2977,24 @@ def load_player_score_cluster(player_id: object) -> str:
 
 @st.cache_data(ttl=300, show_spinner=False)
 def load_player_score_cards(player_id: object) -> list[dict]:
+    score_rows, score_table = load_player_score_rows_with_table(player_id)
     return [
         {
             "name": category["name"],
             "value": format_score(category.get("score")),
         }
-        for category in score_categories(load_player_score_rows(player_id))
+        for category in score_categories(score_rows, score_table)
     ]
 
 
 @st.cache_data(ttl=300, show_spinner=False)
 def load_player_score_details(player_id: object) -> list[dict]:
-    score_rows = load_player_score_rows(player_id)
+    score_rows, score_table = load_player_score_rows_with_table(player_id)
     if not score_rows:
         return []
 
     details = []
-    for category in score_categories(score_rows):
+    for category in score_categories(score_rows, score_table):
         percentile = category.get("percentile")
         if not pd.isna(percentile):
             details.append(
@@ -2999,7 +3060,12 @@ def raw_metric_items(row: dict) -> dict[str, object]:
     return items
 
 
-def raw_metric_score_suffixes(row: dict, categories: list[dict]) -> list[str]:
+def raw_metric_score_suffixes(
+    row: dict,
+    categories: list[dict],
+    score_rows: list[dict],
+    score_table: str | None,
+) -> list[str]:
     suffixes = []
     for category in categories:
         suffix = category.get("suffix")
@@ -3009,6 +3075,8 @@ def raw_metric_score_suffixes(row: dict, categories: list[dict]) -> list[str]:
     for column in row:
         suffix = score_id_suffix_from_column(column)
         if suffix:
+            if is_lateral_score_context(score_rows, score_table) and suffix == "finalizacao":
+                suffix = "criacao_ofensiva"
             suffixes.append(suffix)
 
     return list(dict.fromkeys(suffixes))
@@ -3026,7 +3094,7 @@ def raw_metric_groups(
     position = clean_text(row.get("posicao"), "Posicao nao informada")
     metric_table = RAW_METRIC_TABLES_BY_SCORE_TABLE.get(score_table or "", "")
     configured_groups = RAW_METRIC_GROUPS_BY_TABLE.get(metric_table, {})
-    categories = score_categories(score_rows)
+    categories = score_categories(score_rows, score_table)
     categories_by_suffix = {
         str(category.get("suffix")): category
         for category in categories
@@ -3036,7 +3104,7 @@ def raw_metric_groups(
     used_metrics = set()
     groups = []
 
-    for suffix in raw_metric_score_suffixes(row, categories):
+    for suffix in raw_metric_score_suffixes(row, categories, score_rows, score_table):
         metric_columns = [
             column
             for column in configured_groups.get(suffix, [])
@@ -3316,7 +3384,7 @@ def cluster_comparison_rows(
         return []
 
     comparison_rows = []
-    for category in score_categories(score_rows):
+    for category in score_categories(score_rows, score_table):
         suffix = category.get("suffix")
         selected_percentile = category.get("percentile")
         if not suffix or pd.isna(selected_percentile):
@@ -3439,16 +3507,23 @@ def render_cluster_comparison(
     st.markdown(cluster_comparison_html(comparison_rows, cluster_name), unsafe_allow_html=True)
 
 
-def render_score_profile_section(player_id: object) -> None:
+def render_score_profile_section(
+    player_id: object,
+    show_radar: bool = True,
+    compact_spacing: bool = False,
+) -> None:
     score_rows, score_table = load_player_score_rows_with_table(player_id)
-    categories = score_categories(score_rows)
+    categories = score_categories(score_rows, score_table)
     radar_categories = [category for category in categories if not pd.isna(category.get("percentile"))]
     first_row = score_rows[0] if score_rows else {}
     ranking = format_rank(first_row.get("ranking_percentil"))
+    section_classes = "score-style-section"
+    if compact_spacing:
+        section_classes += " score-style-section-compact"
 
     st.markdown(
         f"""
-        <section class="score-style-section">
+        <section class="{section_classes}">
             <div class="score-style-heading">
                 <div>
                     <div class="player-kicker">Estilo de jogo</div>
@@ -3463,18 +3538,22 @@ def render_score_profile_section(player_id: object) -> None:
         unsafe_allow_html=True,
     )
 
-    if not score_rows or not radar_categories:
-        st.warning("Nao encontrei percentis de score para desenhar o radar desse jogador.")
+    if not score_rows or not categories:
+        st.warning("Nao encontrei scores para esse jogador.")
         return
 
     st.markdown(score_table_html(score_rows, categories), unsafe_allow_html=True)
-    _left_spacer, radar_column, _right_spacer = st.columns([0.14, 0.72, 0.14])
-    with radar_column:
-        st.plotly_chart(
-            score_radar_figure(categories),
-            use_container_width=True,
-            config={"displayModeBar": False, "responsive": True},
-        )
+    if show_radar:
+        if not radar_categories:
+            st.warning("Nao encontrei percentis de score para desenhar o radar desse jogador.")
+        else:
+            _left_spacer, radar_column, _right_spacer = st.columns([0.14, 0.72, 0.14])
+            with radar_column:
+                st.plotly_chart(
+                    score_radar_figure(categories),
+                    use_container_width=True,
+                    config={"displayModeBar": False, "responsive": True},
+                )
     raw_metrics_html = raw_metric_cards_html(
         load_player_raw_metric_rows_from_table(player_id, score_table),
         score_rows,
@@ -3755,8 +3834,6 @@ def render_player_score_content(
         for label, value in quick_facts
     )
 
-    score_details = load_player_score_details(player_id)
-
     st.markdown(
         f"""
         <section class="dialog-player-card">
@@ -3782,16 +3859,11 @@ def render_player_score_content(
 
     score_rows, score_table = load_player_score_rows_with_table(player_id)
     render_cluster_comparison(player_id, score_rows, score_table)
-    metric_rows = load_player_raw_metric_rows_from_table(player_id, score_table)
-    st.markdown(
-        dialog_score_season_summary_html(
-            score_details,
-            metric_rows,
-            score_rows,
-            score_table,
-        ),
-        unsafe_allow_html=True,
-    )
+    render_score_profile_section(player_id, show_radar=False, compact_spacing=True)
+
+
+def render_player_score_dialog(player_info: dict) -> None:
+    render_player_score_content(player_info)
 
 
 def render_about_page() -> None:
@@ -3992,6 +4064,7 @@ def render_methodology_stage(stage: dict[str, object]) -> None:
     open_stage = st.session_state.get("methodology_open_stage")
 
     if open_stage != stage_id:
+        st.markdown('<div class="methodology-stage-trigger-anchor"></div>', unsafe_allow_html=True)
         if st.button(
             f"{stage_id}. {stage_icon} {stage_title}",
             key=f"methodology_open_{stage_id}",
@@ -4000,6 +4073,7 @@ def render_methodology_stage(stage: dict[str, object]) -> None:
         ):
             st.session_state["methodology_open_stage"] = stage_id
             st.rerun()
+        render_html('<div class="methodology-stage-trigger-subtitle">Ver detalhes</div>')
         return
 
     header_column, close_column = st.columns([0.965, 0.035], gap="small")
