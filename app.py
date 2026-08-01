@@ -3965,53 +3965,28 @@ def render_about_page() -> None:
                     </div>
                     <aside class="about-hero-aside">
                         <article class="about-hero-stat">
-                            <div class="about-hero-stat-label">Base analisada</div>
-                            <div class="about-hero-stat-value">2 torneios</div>
-                            <div class="about-hero-stat-copy">Brasileirao Sub-20 + Copinha em uma leitura única.</div>
+                            <div class="about-hero-stat-label">Amostra Inicial</div>
+                            <div class="about-hero-stat-value">3.431</div>
+                            <div class="about-hero-stat-copy">registros de performance coletados.</div>
+                        </article>
+                        <article class="about-hero-stat">
+                            <div class="about-hero-stat-label">Linha de Corte</div>
+                            <div class="about-hero-stat-value">90 min</div>
+                            <div class="about-hero-stat-copy">Só entraram na análise atletas com no mínimo 90 minutos jogados na temporada.</div>
                         </article>
                         <article class="about-hero-stat">
                             <div class="about-hero-stat-label">Base final</div>
                             <div class="about-hero-stat-value">2.137 atletas</div>
                             <div class="about-hero-stat-copy">Recorte com corte de 90 minutos para manter a amostragem justa.</div>
                         </article>
-                        <article class="about-hero-stat">
-                            <div class="about-hero-stat-label">Entrega</div>
-                            <div class="about-hero-stat-value">Personas</div>
-                            <div class="about-hero-stat-copy">Cada jogador ganha um retrato tático por função.</div>
-                        </article>
                     </aside>
                 </div>
             </section>
             <section class="about-funnel">
-                <h2 class="about-section-title">⚙️ O Funil de Captação (Amostragem)</h2>
+                <h2 class="about-section-title">⚙️ O Funil de Captação</h2>
                 <p class="about-section-copy">
-                    Coletamos os dados de todos os atletas inscritos no torneio. Porém, para
-                    o relatório ser justo e fiel, passamos os jogadores por um filtro de
-                    minutagem.
-                </p>
-                <div class="about-funnel-steps">
-                    <article class="about-step">
-                        <div class="about-step-label">Amostra Inicial</div>
-                        <div class="about-step-number">3.431</div>
-                        <p class="about-step-copy">registros de performance coletados.</p>
-                    </article>
-                    <article class="about-step">
-                        <div class="about-step-label">Linha de Corte</div>
-                        <div class="about-step-number">90 min</div>
-                        <p class="about-step-copy">
-                            Só entraram na análise atletas com no mínimo 90 minutos jogados
-                            na temporada.
-                        </p>
-                    </article>
-                    <article class="about-step">
-                        <div class="about-step-label">Base Final de Scouting</div>
-                        <div class="about-step-number">2.137</div>
-                        <p class="about-step-copy">jogadores avaliados e carimbados com um perfil.</p>
-                    </article>
-                </div>
-                <p class="about-section-copy">
-                    Esse corte evita distorções com quem entrou só no finalzinho de um jogo
-                    e preserva a leitura de desempenho real.
+                    Ao final da análise conseguimos captar as variáveis técnicas das 5 macro
+                    posições do futebol
                 </p>
                 <div class="about-position-grid">
                     <article class="about-position-card">
@@ -4569,7 +4544,10 @@ profile_data = score_data if not score_data.empty else data
 teams = normalized_options(profile_data[team_column])
 
 st.markdown('<div class="filter-heading">Selecao</div>', unsafe_allow_html=True)
-team_filter, position_filter, player_filter = st.columns([1.05, 1.05, 1.35], gap="small")
+team_filter, position_filter, cluster_filter, player_filter = st.columns(
+    [1.0, 1.0, 1.0, 1.25],
+    gap="small",
+)
 
 with team_filter:
     selected_team = st.selectbox("Clube", teams, index=default_team_index(teams))
@@ -4577,6 +4555,9 @@ with team_filter:
 team_data = profile_data[profile_data[team_column].astype(str).str.strip() == selected_team].copy()
 team_data["_score_position_text"] = team_data[SCORE_ID_COLUMN].map(
     lambda value: score_profiles.get(storage_path_id(value) or "", {}).get("position", "Sem posicao")
+)
+team_data["_score_cluster_text"] = team_data[SCORE_ID_COLUMN].map(
+    lambda value: score_profiles.get(storage_path_id(value) or "", {}).get("cluster", "Sem cluster")
 )
 filtered_data = team_data
 
@@ -4589,6 +4570,18 @@ with position_filter:
             filtered_data = team_data[team_data["_score_position_text"] == selected_position].copy()
     else:
         st.selectbox("Posicao principal", ["Todas as posicoes"], index=0, disabled=True)
+
+with cluster_filter:
+    score_cluster_data = filtered_data[filtered_data["_score_cluster_text"] != "Sem cluster"]
+    cluster_options = ["Todos os clusters", *normalized_options(score_cluster_data["_score_cluster_text"])]
+    if len(cluster_options) > 1:
+        selected_cluster = st.selectbox("Cluster", cluster_options, index=0)
+        if selected_cluster != "Todos os clusters":
+            filtered_data = filtered_data[
+                filtered_data["_score_cluster_text"] == selected_cluster
+            ].copy()
+    else:
+        st.selectbox("Cluster", ["Todos os clusters"], index=0, disabled=True)
 
 player_options_data = filtered_data.dropna(subset=[SCORE_ID_COLUMN]).copy()
 player_options_data["_player_id_text"] = player_options_data[SCORE_ID_COLUMN].map(storage_path_id)
