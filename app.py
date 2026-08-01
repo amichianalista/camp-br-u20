@@ -788,11 +788,11 @@ def load_background_css() -> str:
 
         .methodology-title {{
             color: #f8fafc;
-            font-size: clamp(2rem, 5vw, 4.4rem);
+            font-size: clamp(2.35rem, 5.8vw, 5.15rem);
             font-weight: 950;
             line-height: 0.98;
             margin: 0;
-            max-width: 1000px;
+            max-width: 1080px;
             text-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
         }}
 
@@ -986,46 +986,62 @@ def load_background_css() -> str:
         }}
 
         div[data-testid="stElementContainer"]:has(.methodology-stage-trigger-anchor) + div[data-testid="stButton"] {{
-            margin-bottom: 0.34rem;
+            margin-bottom: 0.86rem;
         }}
 
         div[data-testid="stElementContainer"]:has(.methodology-stage-trigger-anchor) + div[data-testid="stButton"] > button {{
             background:
-                linear-gradient(135deg, rgba(132, 255, 147, 0.30), rgba(56, 189, 248, 0.18)),
-                rgba(255, 255, 255, 0.10) !important;
+                radial-gradient(circle at 90% 22%, rgba(250, 204, 21, 0.18), transparent 10rem),
+                linear-gradient(135deg, rgba(132, 255, 147, 0.34), rgba(56, 189, 248, 0.20)),
+                rgba(255, 255, 255, 0.12) !important;
+            align-items: center;
             border: 1px solid rgba(255, 255, 255, 0.18) !important;
             border-radius: 14px !important;
             box-shadow:
                 inset 0 1px 0 rgba(255, 255, 255, 0.14),
                 0 16px 34px rgba(0, 0, 0, 0.18) !important;
             color: #f8fafc !important;
-            font-size: clamp(1.05rem, 1.2vw, 1.18rem) !important;
-            font-weight: 900 !important;
-            letter-spacing: -0.01em;
-            line-height: 1.18;
-            min-height: 4.25rem !important;
-            padding: 1rem 1.4rem !important;
+            display: flex !important;
+            flex-direction: column;
+            font-size: clamp(1.35rem, 2vw, 2.05rem) !important;
+            font-weight: 950 !important;
+            gap: 0.52rem;
+            justify-content: center;
+            letter-spacing: 0;
+            line-height: 1.05;
+            min-height: 6.1rem !important;
+            padding: 1.1rem 1.45rem 1rem 1.45rem !important;
+            position: relative;
+            text-align: center;
+        }}
+
+        div[data-testid="stElementContainer"]:has(.methodology-stage-trigger-anchor) + div[data-testid="stButton"] > button::after {{
+            align-items: center;
+            background: rgba(2, 6, 23, 0.28);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 999px;
+            color: rgba(248, 250, 252, 0.92);
+            content: "Ver detalhes  ↓";
+            display: inline-flex;
+            font-size: 0.76rem;
+            font-weight: 950;
+            justify-content: center;
+            letter-spacing: 0;
+            line-height: 1;
+            padding: 0.42rem 0.72rem;
+            text-transform: uppercase;
         }}
 
         div[data-testid="stElementContainer"]:has(.methodology-stage-trigger-anchor) + div[data-testid="stButton"] > button:hover {{
             background:
-                linear-gradient(135deg, rgba(132, 255, 147, 0.38), rgba(56, 189, 248, 0.23)),
-                rgba(255, 255, 255, 0.13) !important;
+                radial-gradient(circle at 90% 22%, rgba(250, 204, 21, 0.24), transparent 10rem),
+                linear-gradient(135deg, rgba(132, 255, 147, 0.44), rgba(56, 189, 248, 0.27)),
+                rgba(255, 255, 255, 0.15) !important;
             border-color: rgba(250, 204, 21, 0.52) !important;
             box-shadow:
                 inset 0 1px 0 rgba(255, 255, 255, 0.18),
                 0 20px 38px rgba(0, 0, 0, 0.22) !important;
             transform: translateY(-1px);
-        }}
-
-        .methodology-stage-trigger-subtitle {{
-            color: rgba(248, 250, 252, 0.76);
-            font-size: 0.78rem;
-            font-weight: 800;
-            letter-spacing: 0.01em;
-            margin: -0.08rem 0 0.8rem 0;
-            text-align: center;
-            text-transform: uppercase;
         }}
 
         div[data-testid="column"]:has(.methodology-close-anchor) div[data-testid="stButton"] {{
@@ -1388,6 +1404,18 @@ def load_background_css() -> str:
         .score-support-panel {{
             margin-top: 0.72rem;
             padding: 0.88rem;
+        }}
+
+        .score-support-heading {{
+            align-items: flex-end;
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            margin-bottom: 0.76rem;
+        }}
+
+        .score-support-heading .ranking-heading {{
+            justify-content: flex-end;
         }}
 
         .score-support-strip {{
@@ -1944,6 +1972,78 @@ def load_background_css() -> str:
             margin-bottom: 0.56rem;
             overflow: hidden;
             padding: 0.65rem;
+            position: relative;
+        }}
+
+        .player-close-visual {{
+            align-items: center;
+            background: rgba(2, 6, 23, 0.70);
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            border-radius: 999px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.26);
+            color: #f8fafc;
+            display: flex;
+            font-size: 1rem;
+            font-weight: 900;
+            height: 2rem;
+            justify-content: center;
+            left: 0.55rem;
+            position: absolute;
+            top: 0.55rem;
+            width: 2rem;
+            z-index: 4;
+        }}
+
+        .player-close-anchor {{
+            height: 0;
+            width: 0;
+        }}
+
+        div[data-testid="column"]:has(.player-close-anchor) {{
+            position: relative;
+            z-index: 8;
+        }}
+
+        div[data-testid="column"]:has(.player-close-anchor) div[data-testid="stButton"] {{
+            position: relative;
+            transform: translate(0.55rem, 0.55rem);
+            width: 2rem;
+        }}
+
+        div[data-testid="column"]:has(.player-close-anchor) div[data-testid="stButton"] > button {{
+            background: transparent !important;
+            border-color: transparent !important;
+            border-radius: 999px;
+            box-shadow: none;
+            color: transparent !important;
+            font-size: 1rem;
+            font-weight: 900;
+            height: 2rem;
+            min-height: 2rem;
+            opacity: 0;
+            padding: 0;
+            width: 2rem !important;
+        }}
+
+        div[data-testid="column"]:has(.player-close-anchor) div[data-testid="stButton"] > button:hover {{
+            background: transparent !important;
+            border-color: transparent !important;
+            color: transparent !important;
+            opacity: 0;
+            transform: none;
+        }}
+
+        div[data-testid="column"]:has(.player-card-anchor) .dialog-player-card {{
+            margin-left: -2.65rem;
+            padding-left: 0.65rem;
+            width: calc(100% + 2.65rem);
+        }}
+
+        div[data-testid="column"]:has(.player-card-anchor) .cluster-compare-shell,
+        div[data-testid="column"]:has(.player-card-anchor) .score-support-panel,
+        div[data-testid="column"]:has(.player-card-anchor) .player-score-shell {{
+            margin-left: -2.65rem;
+            width: calc(100% + 2.65rem);
         }}
 
         .dialog-bio-shell {{
@@ -2453,12 +2553,28 @@ def load_background_css() -> str:
                 grid-template-columns: 1fr;
             }}
 
+            div[data-testid="stElementContainer"]:has(.methodology-stage-trigger-anchor) + div[data-testid="stButton"] > button {{
+                font-size: clamp(1.05rem, 6vw, 1.48rem) !important;
+                min-height: 5.7rem !important;
+                padding-left: 0.85rem !important;
+                padding-right: 0.85rem !important;
+            }}
+
             .performance-grid {{
                 grid-template-columns: 1fr;
             }}
 
             .score-grid {{
                 grid-template-columns: 1fr;
+            }}
+
+            .score-support-heading {{
+                align-items: flex-start;
+                flex-direction: column;
+            }}
+
+            .score-support-heading .ranking-heading {{
+                justify-content: flex-start;
             }}
 
             .raw-metrics-heading {{
@@ -3205,7 +3321,7 @@ def raw_metric_cards_html(
     )
 
 
-def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
+def score_table_html(score_rows: list[dict], categories: list[dict], ranking: str = "-") -> str:
     cards_html = []
 
     for category in categories:
@@ -3232,6 +3348,16 @@ def score_table_html(score_rows: list[dict], categories: list[dict]) -> str:
 
     return (
         '<section class="score-support-panel">'
+        '<div class="score-support-heading">'
+        "<div>"
+        '<div class="player-kicker">Estilo de jogo</div>'
+        '<p class="section-note">Percentis por categoria de score</p>'
+        "</div>"
+        '<div class="ranking-heading">'
+        '<div class="ranking-heading-label">Posição no ranking</div>'
+        f'<div class="ranking-heading-value">{html.escape(ranking)}</div>'
+        "</div>"
+        "</div>"
         f'<div class="score-support-strip">{"".join(cards_html)}</div>'
         "</section>"
     )
@@ -3517,32 +3643,11 @@ def render_score_profile_section(
     radar_categories = [category for category in categories if not pd.isna(category.get("percentile"))]
     first_row = score_rows[0] if score_rows else {}
     ranking = format_rank(first_row.get("ranking_percentil"))
-    section_classes = "score-style-section"
-    if compact_spacing:
-        section_classes += " score-style-section-compact"
-
-    st.markdown(
-        f"""
-        <section class="{section_classes}">
-            <div class="score-style-heading">
-                <div>
-                    <div class="player-kicker">Estilo de jogo</div>
-                    <div class="ranking-heading">
-                        <div class="ranking-heading-label">Posicao no ranking</div>
-                        <div class="ranking-heading-value">{html.escape(ranking)}</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-
     if not score_rows or not categories:
         st.warning("Nao encontrei scores para esse jogador.")
         return
 
-    st.markdown(score_table_html(score_rows, categories), unsafe_allow_html=True)
+    st.markdown(score_table_html(score_rows, categories, ranking), unsafe_allow_html=True)
     if show_radar:
         if not radar_categories:
             st.warning("Nao encontrei percentis de score para desenhar o radar desse jogador.")
@@ -3837,6 +3942,7 @@ def render_player_score_content(
     st.markdown(
         f"""
         <section class="dialog-player-card">
+            <span class="player-close-visual">&times;</span>
             <div class="dialog-player-photo">{player_photo_html}</div>
             <div class="dialog-player-meta">
                 <div class="player-kicker">Jogador selecionado</div>
@@ -3863,7 +3969,18 @@ def render_player_score_content(
 
 
 def render_player_score_dialog(player_info: dict) -> None:
-    render_player_score_content(player_info)
+    player_key = key_fragment(player_info.get("player_id") or player_info.get("name") or "atleta")
+    close_column, content_column = st.columns([0.035, 0.965], gap="small")
+
+    with close_column:
+        st.markdown('<div class="player-close-anchor"></div>', unsafe_allow_html=True)
+        if st.button("×", key=f"close_player_{player_key}", help="Fechar jogador"):
+            st.session_state.pop("perfil_funcao_player", None)
+            st.rerun()
+
+    with content_column:
+        st.markdown('<div class="player-card-anchor"></div>', unsafe_allow_html=True)
+        render_player_score_content(player_info)
 
 
 def render_about_page() -> None:
@@ -4073,7 +4190,6 @@ def render_methodology_stage(stage: dict[str, object]) -> None:
         ):
             st.session_state["methodology_open_stage"] = stage_id
             st.rerun()
-        render_html('<div class="methodology-stage-trigger-subtitle">Ver detalhes</div>')
         return
 
     header_column, close_column = st.columns([0.965, 0.035], gap="small")
@@ -4320,6 +4436,7 @@ def render_selected_cluster_players(
         st.markdown('<div class="cluster-close-anchor"></div>', unsafe_allow_html=True)
         if st.button("Ã—", key=f"close_cluster_{key_fragment(selected_function)}", help="Fechar cluster"):
             st.session_state.pop("perfil_funcao_cluster", None)
+            st.session_state.pop("perfil_funcao_player", None)
             st.rerun()
 
     if selected_rows.empty:
@@ -4349,6 +4466,8 @@ def render_selected_cluster_players(
                 selected_position = clean_text(row["_position_text"], "Funcao nao informada")
                 selected_player_id = row[SCORE_ID_COLUMN] if SCORE_ID_COLUMN in row.index else None
                 player_info = {
+                    "function": selected_function,
+                    "cluster_key": selected_cluster_name,
                     "name": player_name,
                     "team": team_name,
                     "position": selected_position,
@@ -4366,8 +4485,16 @@ def render_selected_cluster_players(
                     "birth_date": format_date(row["data_nascimento"]) if "data_nascimento" in row.index else "-",
                     "cluster": clean_text(row["_cluster_text"], "-"),
                 }
-                render_player_score_dialog(player_info)
+                st.session_state["perfil_funcao_player"] = player_info
     st.markdown("</div>", unsafe_allow_html=True)
+
+    selected_player_info = st.session_state.get("perfil_funcao_player")
+    if (
+        selected_player_info
+        and selected_player_info.get("function") == selected_function
+        and selected_player_info.get("cluster_key") == selected_cluster_name
+    ):
+        render_player_score_dialog(selected_player_info)
 
 
 def render_function_profile_page(
@@ -4423,6 +4550,7 @@ def render_function_profile_page(
                         "function": function_label,
                         "cluster": cluster,
                     }
+                    st.session_state.pop("perfil_funcao_player", None)
         st.markdown("</div>", unsafe_allow_html=True)
 
         selected_cluster = st.session_state.get("perfil_funcao_cluster")
